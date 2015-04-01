@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 6e039a9ea8800dce1a34c276265692f9)
+# DO NOT EDIT (digest: 8dfd42a651dae0d9fe092448ebdcd0b4)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -14,6 +14,28 @@ true: annot, bin_annot
 ".git": not_hygienic
 "_darcs": -traverse
 "_darcs": not_hygienic
+# Library cache
+"lib/cache.cmxs": use_cache
+<lib/*.ml{,i,y}>: pkg_lwt
+<lib/*.ml{,i,y}>: pkg_re.str
+<lib/*.ml{,i,y}>: pkg_sexplib
+<lib/*.ml{,i,y}>: pkg_sexplib.syntax
+<lib/*.ml{,i,y}>: pkg_xen-api-client.lwt
+# Executable cache_test
+"lib_test/test.byte": pkg_lwt
+"lib_test/test.byte": pkg_lwt.syntax
+"lib_test/test.byte": pkg_re.str
+"lib_test/test.byte": pkg_sexplib
+"lib_test/test.byte": pkg_sexplib.syntax
+"lib_test/test.byte": pkg_xen-api-client.lwt
+"lib_test/test.byte": use_cache
+<lib_test/*.ml{,i,y}>: pkg_lwt
+<lib_test/*.ml{,i,y}>: pkg_lwt.syntax
+<lib_test/*.ml{,i,y}>: pkg_re.str
+<lib_test/*.ml{,i,y}>: pkg_sexplib
+<lib_test/*.ml{,i,y}>: pkg_sexplib.syntax
+<lib_test/*.ml{,i,y}>: pkg_xen-api-client.lwt
+<lib_test/*.ml{,i,y}>: use_cache
 # Executable localstorage_looper
 "src/main.byte": pkg_cow
 "src/main.byte": pkg_cow.syntax

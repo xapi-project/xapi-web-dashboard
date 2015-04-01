@@ -36,7 +36,7 @@ let onload _ =
   let demo =
     Js.Opt.get (d##getElementById(Js.string "demo"))
       (fun () -> assert false) in
-  demo##innerHTML <- Js.string (Cow.Xml.to_string (testhtml 0));
+  (* demo##innerHTML <- Js.string (Cow.Xml.to_string (testhtml 0)); *)
 
   let login_button =
     Js.Opt.get (d##getElementById(Js.string "login_button"))
