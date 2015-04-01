@@ -8,7 +8,6 @@ build: [
   [make "install"]
 ]
 remove: [
-  ["ocamlfind" "remove" "localStorage"]
 ]
 depends: [
   "js_of_ocaml"
