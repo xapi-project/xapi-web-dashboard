@@ -14,6 +14,7 @@
 
 type result = [
   | `VM of (string * API.vM_t)
+  | `Host of (string * API.host_t)
 ]
 
 val query: string -> result list

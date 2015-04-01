@@ -23,9 +23,10 @@ type rpc = Rpc.call -> Rpc.response Lwt.t
 type session_id = string
 
 let vm = ref M.empty
+let host = ref M.empty
 
 let rec receive_events ?(token="") rpc session_id =
-  Event.from ~rpc ~session_id ~classes:["VM"] ~timeout:60. ~token
+  Event.from ~rpc ~session_id ~classes:["VM"; "host"] ~timeout:60. ~token
   >>= fun result ->
   let open Event_types in
   let from = event_from_of_rpc result in
@@ -34,6 +35,10 @@ let rec receive_events ?(token="") rpc session_id =
       vm := M.remove reference !vm
     | { ty = "vm"; reference; snapshot = Some snapshot } ->
       vm := M.add reference (API.vM_t_of_rpc snapshot) !vm;
+    | { ty = "host"; reference; op = `del } ->
+      host := M.remove reference !host
+    | { ty = "host"; reference; snapshot = Some snapshot } ->
+      host := M.add reference (API.host_t_of_rpc snapshot) !host;
     | _ -> ()
   ) from.events;
   receive_events ~token:from.token rpc session_id
