@@ -1,0 +1,42 @@
+# OASIS_START
+# DO NOT EDIT (digest: 6e039a9ea8800dce1a34c276265692f9)
+# Ignore VCS directories, you can use the same kind of rule outside
+# OASIS_START/STOP if you want to exclude directories that contains
+# useless stuff for the build process
+true: annot, bin_annot
+<**/.svn>: -traverse
+<**/.svn>: not_hygienic
+".bzr": -traverse
+".bzr": not_hygienic
+".hg": -traverse
+".hg": not_hygienic
+".git": -traverse
+".git": not_hygienic
+"_darcs": -traverse
+"_darcs": not_hygienic
+# Executable localstorage_looper
+"src/main.byte": pkg_cow
+"src/main.byte": pkg_cow.syntax
+"src/main.byte": pkg_js_of_ocaml
+"src/main.byte": pkg_js_of_ocaml.syntax
+"src/main.byte": pkg_localStorage
+"src/main.byte": pkg_lwt
+"src/main.byte": pkg_lwt.syntax
+"src/main.byte": pkg_rpclib
+"src/main.byte": pkg_rpclib.js
+"src/main.byte": pkg_sexplib
+"src/main.byte": pkg_sexplib.syntax
+"src/main.byte": pkg_xen-api-client.lwt
+<src/*.ml{,i,y}>: pkg_cow
+<src/*.ml{,i,y}>: pkg_cow.syntax
+<src/*.ml{,i,y}>: pkg_js_of_ocaml
+<src/*.ml{,i,y}>: pkg_js_of_ocaml.syntax
+<src/*.ml{,i,y}>: pkg_localStorage
+<src/*.ml{,i,y}>: pkg_lwt
+<src/*.ml{,i,y}>: pkg_lwt.syntax
+<src/*.ml{,i,y}>: pkg_rpclib
+<src/*.ml{,i,y}>: pkg_rpclib.js
+<src/*.ml{,i,y}>: pkg_sexplib
+<src/*.ml{,i,y}>: pkg_sexplib.syntax
+<src/*.ml{,i,y}>: pkg_xen-api-client.lwt
+# OASIS_STOP

@@ -1,9 +1,27 @@
-.PHONY: default
+.PHONY: all clean distclean setup build doc install test
+all: build
 
-default: test.js
+J ?= 2
 
-test.byte: test.ml
-	ocamlfind ocamlc -package js_of_ocaml,js_of_ocaml.syntax,rpclib,rpclib.js,xen-api-client.lwt,lwt,lwt.syntax,cow,cow.syntax -annot -syntax camlp4o -linkpkg -g -o test.byte test.ml
+setup.data: setup.bin
+	./setup.bin -configure
 
-test.js: test.byte
-	js_of_ocaml --noinline --pretty test.byte
+distclean: setup.data setup.bin
+	./setup.bin -distclean $(OFLAGS)
+	$(RM) setup.bin
+
+setup: setup.data
+
+build: setup.data  setup.bin
+	./setup.bin -build -j $(J) $(OFLAGS)
+
+clean:
+	ocamlbuild -clean
+	rm -f setup.data setup.bin main.js
+
+doc: setup.data setup.bin
+	./setup.bin -doc -j $(J) $(OFLAGS)
+
+setup.bin: setup.ml
+	ocamlopt.opt -o $@ $< || ocamlopt -o $@ $< || ocamlc -o $@ $<
+	$(RM) setup.cmx setup.cmi setup.o setup.cmo

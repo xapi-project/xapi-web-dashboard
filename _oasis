@@ -1,0 +1,17 @@
+OASISFormat: 0.3
+OCamlVersion: >= 3.12
+Name:        ocaml-web-dashboard
+Version:     1.0.0
+Authors:     Jon Ludlam
+License:     ISC
+Synopsis:    HTML5 web client for XenServer
+Plugins:     META (0.3)
+BuildTools:  ocamlbuild
+PostBuildCommand: ./makejs.sh
+
+Executable localstorage_looper
+  Path:               src
+  MainIs:             main.ml
+  CompiledObject:     byte
+  Install:            false
+  BuildDepends: js_of_ocaml,js_of_ocaml.syntax,rpclib,rpclib.js,xen-api-client.lwt,lwt,lwt.syntax,cow,cow.syntax,sexplib,sexplib.syntax,localStorage
