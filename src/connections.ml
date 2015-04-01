@@ -48,8 +48,14 @@ let forget_host host =
   mutate key
     (List.filter (fun c -> c.host <> host))
 
+let open_host_modal () =
+  Js.Unsafe.fun_call (Js.Unsafe.variable "open_add_host") [| |]
+
+let close_host_modal () =
+  Js.Unsafe.fun_call (Js.Unsafe.variable "close_add_host") [| |]
 
 open Lwt
+
 
 module Client=Client.ClientF(Lwt)
 
@@ -70,4 +76,8 @@ let connect h =
   } in
   Lwt.return (rpc,info)
 
+let disconnect (rpc,info) =
+  Client.Session.logout rpc info.session
+
+  
 

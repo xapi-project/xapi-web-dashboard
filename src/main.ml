@@ -1,16 +1,4 @@
 
-let testhtml n =
-  <:html<
-      <section class="hero">
-        <div class="row">
-          <div class="medium-4 medium-offset-4">
-            <p>Nothing to see here $int:n$ </p>
-          </div>
-        </div>
-      </section>
-  >>
-
-let num = ref 1
 let d = Dom_html.document
 let get_by_id id =
   Js.Opt.get (d##getElementById(Js.string id))
@@ -24,18 +12,25 @@ let get_val id =
   let v = input_node##value in
   Js.to_string v
 
+open Lwt
+
 let action () =
   let server = get_val "login_server" in
   let username = get_val "login_username" in
   let password = get_val "login_password" in
-  Connections.remember_host server username password
-
-open Lwt
+  Connections.remember_host server username password;
+  let _ = Connections.iter_hosts (fun f ->
+      (Connections.connect f >>= fun i ->
+       Pools.render f i);
+      ()) in
+  Connections.close_host_modal ();
+  ()
+  
 
 let onload _ =
   let _ = Connections.iter_hosts (fun f ->
       (Connections.connect f >>= fun i ->
-      Vms.render i);
+       Pools.render f i);
       ()) in
 
   let demo =
