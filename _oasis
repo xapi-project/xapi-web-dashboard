@@ -9,6 +9,18 @@ Plugins:     META (0.3)
 BuildTools:  ocamlbuild
 PostBuildCommand: ./makejs.sh
 
+Library cache
+  Path:               lib
+  Modules:            Cache
+  BuildDepends:       xen-api-client.lwt,lwt,sexplib,sexplib.syntax
+
+Executable cache_test
+  Path:               lib_test
+  MainIs:             test.ml
+  CompiledObject:     byte
+  Install:            false
+  BuildDepends:       cache,xen-api-client.lwt,lwt,lwt.syntax
+
 Executable localstorage_looper
   Path:               src
   MainIs:             main.ml
