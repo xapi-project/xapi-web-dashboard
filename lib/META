@@ -1,8 +1,8 @@
 # OASIS_START
-# DO NOT EDIT (digest: ea5f4f6f2648dfe51db0687603662c1d)
+# DO NOT EDIT (digest: da04326bad00236efbd0286f8759a52d)
 version = "1.0.0"
 description = "HTML5 web client for XenServer"
-requires = "xen-api-client.lwt lwt sexplib sexplib.syntax"
+requires = "xen-api-client.lwt lwt sexplib sexplib.syntax re.str"
 archive(byte) = "cache.cma"
 archive(byte, plugin) = "cache.cma"
 archive(native) = "cache.cmxa"
