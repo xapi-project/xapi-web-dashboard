@@ -12,13 +12,22 @@
  * GNU Lesser General Public License for more details.
  *)
 
-module M : Map.S with type key = string
+open Lwt
 
-val vm: API.vM_t M.t ref
+open Xen_api
+open Xen_api_lwt_unix
 
-type rpc = Rpc.call -> Rpc.response Lwt.t
+type result = [
+  | `VM of (string * API.vM_t)
+]
 
-type session_id = string
-
-val receive_events: ?token:string -> rpc -> session_id -> 'a Lwt.t
-(** Receive events forever, populating the local cache *)
+let query x =
+  let r = Re_str.regexp_string x in
+  let vm = !Cache.vm in
+  Cache.M.fold (fun rf vm_t acc ->
+    try
+      let (_: int) = Re_str.search_forward r vm_t.API.vM_name_label 0 in
+      `VM (rf, vm_t) :: acc
+    with Not_found ->
+      acc
+  ) vm []

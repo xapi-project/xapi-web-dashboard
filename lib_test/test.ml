@@ -28,12 +28,23 @@ let exn_to_string = function
 	| e -> Printexc.to_string e
 
 let main () =
-	let rpc = if !json then make_json !uri else make !uri in
-	lwt session_id = Session.login_with_password rpc !username !password "1.0" in
-	try_lwt
-                Cache.receive_events rpc session_id
-	finally
-		Session.logout rpc session_id
+  let rpc = if !json then make_json !uri else make !uri in
+  lwt session_id = Session.login_with_password rpc !username !password "1.0" in
+  try_lwt
+    let (_: 'a Lwt.t) = Cache.receive_events rpc session_id in
+    Printf.fprintf stderr "Type a search query and hit enter:\n%!";
+    let rec loop () =
+      Lwt_io.read_line Lwt_io.stdin
+      >>= fun x ->
+      let results = Search.query x in
+      List.iteri (fun i x -> match x with
+        | `VM (rf, _) ->
+          Printf.fprintf stderr "%d/%d: %s\n%!" i (List.length results) rf
+      ) results;
+      loop () in
+    loop ()
+  finally
+    Session.logout rpc session_id
 
 let _ =
 	Arg.parse [

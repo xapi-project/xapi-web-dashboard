@@ -12,13 +12,10 @@
  * GNU Lesser General Public License for more details.
  *)
 
-module M : Map.S with type key = string
+type result = [
+  | `VM of (string * API.vM_t)
+]
 
-val vm: API.vM_t M.t ref
-
-type rpc = Rpc.call -> Rpc.response Lwt.t
-
-type session_id = string
-
-val receive_events: ?token:string -> rpc -> session_id -> 'a Lwt.t
-(** Receive events forever, populating the local cache *)
+val query: string -> result list
+(** Search the known objects and return a prioritised list of possible
+    matches *)

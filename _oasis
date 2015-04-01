@@ -12,7 +12,7 @@ PostBuildCommand: ./makejs.sh
 Library cache
   Path:               lib
   Modules:            Cache
-  BuildDepends:       xen-api-client.lwt,lwt,sexplib,sexplib.syntax
+  BuildDepends:       xen-api-client.lwt,lwt,sexplib,sexplib.syntax,re.str
 
 Executable cache_test
   Path:               lib_test
