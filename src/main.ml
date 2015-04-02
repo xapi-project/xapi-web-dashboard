@@ -30,7 +30,7 @@ let action () =
 let onload _ =
   let _ = Connections.iter_hosts (fun f ->
       (Connections.connect f >>= fun i ->
-       Pools.render f i);
+       Vms.render i);
       ()) in
 
   let demo =

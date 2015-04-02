@@ -1,18 +1,27 @@
 
 open Sexplib.Std
 
-type pool_info = {
-  pool_name : string;
-  pool_uuid : string;
-  session : string;
-  version : string;
-}
+type conn_state =
+  | Disconnected
+  | Connecting
+  | Connected
 
 type connection = {
   host : string;
   username : string;
   password : string;
+  mutable state : state;
+  mutable session : string;
 } with sexp
+
+type state = {
+  c : connection;
+  st : conn_state;
+  rpc : Rpc.call -> Rpc.response;
+  mutable session : string;
+}
+
+let states : state list ref = ref []
 
 type conn_list = connection list with sexp
 
@@ -31,22 +40,32 @@ let mutate key fn =
   in
   st#set key (Js.string (to_string (fn init)))
 
-let remember_host host username password =
+let remember_connection host username password =
+  let connection = { host; username; password; state=Disconnected; session="" } in
   mutate key
     (fun s ->
-      { host; username; password }
-      :: (List.filter (fun c -> c.host <> host) s))
+      connection :: (List.filter (fun c -> c.host <> host) s));
+  connection
 
-let iter_hosts fn =
+let iter_connections fn =
   Js.Opt.iter
     (st#get key)
     (fun s ->
       let list = of_string (Js.to_string s) in
       List.iter fn list)
 
-let forget_host host =
+let forget_connection host =
   mutate key
     (List.filter (fun c -> c.host <> host))
+
+let testrpc server x = 
+  let result = Rpc_client_js.do_json_rpc ~url:(Printf.sprintf "http://%s/jsonrpc" server) x in
+  result
+
+let init () =
+  states := [];
+  iter_connections (fun conn ->
+    states := { c=conn; st=Disconnected; rpc=testrpc conn.host; session=""; } :: !states)
 
 let open_host_modal () =
   Js.Unsafe.fun_call (Js.Unsafe.variable "open_add_host") [| |]
@@ -59,22 +78,13 @@ open Lwt
 
 module Client=Client.ClientF(Lwt)
 
-let testrpc server x = 
-  let result = Rpc_client_js.do_json_rpc ~url:(Printf.sprintf "http://%s/jsonrpc" server) x in
-  result
+
 
 let connect h =
   let rpc = testrpc h.host in
   Client.Session.login_with_password rpc h.username h.password "1.0" >>= fun session ->
-  Client.Pool.get_all_records rpc session >>= fun pools ->
-  let (pool_ref,pool_rec) = List.hd pools in
-  let info = {
-    pool_name = pool_rec.API.pool_name_label;
-    pool_uuid = pool_rec.API.pool_uuid;
-    session = session;
-    version = "1.0";
-  } in
-  Lwt.return (rpc,info)
+  let _ = Cache.receive_events rpc session_id in
+  Lwt.return (rpc,h)
 
 let disconnect (rpc,info) =
   Client.Session.logout rpc info.session

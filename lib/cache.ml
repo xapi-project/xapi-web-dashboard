@@ -24,10 +24,9 @@ type session_id = string
 
 let vm = ref M.empty
 let host = ref M.empty
+let pool = ref M.empty
 
-let rec receive_events ?(token="") rpc session_id =
-  Event.from ~rpc ~session_id ~classes:["VM"; "host"] ~timeout:60. ~token
-  >>= fun result ->
+let process_events result =
   let open Event_types in
   let from = event_from_of_rpc result in
   List.iter (function
@@ -39,6 +38,16 @@ let rec receive_events ?(token="") rpc session_id =
       host := M.remove reference !host
     | { ty = "host"; reference; snapshot = Some snapshot } ->
       host := M.add reference (API.host_t_of_rpc snapshot) !host;
+    | { ty = "pool"; reference; op = `del } ->
+      pool := M.remove reference !host
+    | { ty = "pool"; reference; snapshot = Some snapshot } ->
+      pool := M.add reference (API.host_t_of_rpc snapshot) !host;
     | _ -> ()
   ) from.events;
-  receive_events ~token:from.token rpc session_id
+  Lwt.return ()
+
+let rec receive_events ?(token="") rpc session_id =
+  Event.from ~rpc ~session_id ~classes:["VM"; "host"] ~timeout:60. ~token
+  >>= process_events
+  >> receive_events ~token:from.token rpc session_id
+
