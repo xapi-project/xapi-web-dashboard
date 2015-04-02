@@ -14,8 +14,8 @@
 
 open Lwt
 
-open Xen_api
-open Xen_api_lwt_unix
+module Client=Client.ClientF(Lwt)
+
 open Event_types
 
 module M = Map.Make(String)

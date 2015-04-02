@@ -62,32 +62,51 @@ let testrpc server x =
   let result = Rpc_client_js.do_json_rpc ~url:(Printf.sprintf "http://%s/jsonrpc" server) x in
   result
 
+
+
+
+
+module Client=Client.ClientF(Lwt)
+
+open Lwt
+
+
+let mkstate conn =
+  { c=conn; st=Disconnected; rpc=testrpc conn.host; session=""; }
+
 let init () =
   states := [];
   iter_connections (fun conn ->
-    states := { c=conn; st=Disconnected; rpc=testrpc conn.host; session=""; } :: !states)
+    states := (mkstate conn) :: !states)
 
+let add conn =
+  try
+    List.find (fun st -> st.c = conn) !states
+  with Not_found ->
+    let state = mkstate conn in
+    states := state :: !states;
+    state
+
+let all_states () =
+  !states
+
+(* See js/hooks.js *)
 let open_host_modal () =
   Js.Unsafe.fun_call (Js.Unsafe.variable "open_add_host") [| |]
 
 let close_host_modal () =
   Js.Unsafe.fun_call (Js.Unsafe.variable "close_add_host") [| |]
 
-open Lwt
-
-
-module Client=Client.ClientF(Lwt)
-
-
-
-let connect h =
-  let rpc = testrpc h.host in
-  Client.Session.login_with_password rpc h.username h.password "1.0" >>= fun session ->
+let connect st =
+  Client.Session.login_with_password st.rpc st.c.username st.c.password "1.0" >>= fun session ->
+  st.session <- session;
+  st.state <- Connecting;
   let _ = Cache.receive_events rpc session_id in
   Lwt.return (rpc,h)
 
-let disconnect (rpc,info) =
-  Client.Session.logout rpc info.session
+let disconnect st =
+  Client.Session.logout st.rpc st.session;
+  states 
 
   
 
