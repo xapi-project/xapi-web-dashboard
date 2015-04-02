@@ -26,4 +26,4 @@ Executable localstorage_looper
   MainIs:             main.ml
   CompiledObject:     byte
   Install:            false
-  BuildDepends: js_of_ocaml,js_of_ocaml.syntax,rpclib,rpclib.js,xen-api-client.lwt,lwt,lwt.syntax,cow,cow.syntax,sexplib,sexplib.syntax,localStorage
+  BuildDepends: js_of_ocaml,js_of_ocaml.syntax,rpclib,rpclib.js,xen-api-client.lwt,lwt,lwt.syntax,cow,cow.syntax,sexplib,sexplib.syntax,localStorage,cache

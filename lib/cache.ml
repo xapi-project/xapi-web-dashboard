@@ -16,6 +16,7 @@ open Lwt
 
 open Xen_api
 open Xen_api_lwt_unix
+open Event_types
 
 module M = Map.Make(String)
 
@@ -26,9 +27,7 @@ let vm = ref M.empty
 let host = ref M.empty
 let pool = ref M.empty
 
-let process_events result =
-  let open Event_types in
-  let from = event_from_of_rpc result in
+let process_events from =
   List.iter (function
     | { ty = "vm"; reference; op = `del } ->
       vm := M.remove reference !vm
@@ -46,8 +45,24 @@ let process_events result =
   ) from.events;
   Lwt.return ()
 
-let rec receive_events ?(token="") rpc session_id =
+(* Call Event.from and process the events *)
+let from ?(token="") rpc session_id =
   Event.from ~rpc ~session_id ~classes:["VM"; "host"] ~timeout:60. ~token
-  >>= process_events
-  >> receive_events ~token:from.token rpc session_id
+  >>= fun result ->
+  let from = event_from_of_rpc result in
+  process_events from
+  >>= fun () ->
+  return from
 
+(* Blocks until the initial batch of events has been processed then
+   starts a background thread receiving updates forever. *)
+let start rpc session_id =
+  from rpc session_id
+  >>= fun f ->
+  let (_: 'a Lwt.t) =
+    let rec loop f =
+      from ~token:f.token rpc session_id
+      >>= fun f ->
+      loop f in
+    loop f in
+  return ()
