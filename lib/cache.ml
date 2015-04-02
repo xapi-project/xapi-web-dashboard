@@ -38,16 +38,16 @@ let process_events from =
     | { ty = "host"; reference; snapshot = Some snapshot } ->
       host := M.add reference (API.host_t_of_rpc snapshot) !host;
     | { ty = "pool"; reference; op = `del } ->
-      pool := M.remove reference !host
+      pool := M.remove reference !pool
     | { ty = "pool"; reference; snapshot = Some snapshot } ->
-      pool := M.add reference (API.host_t_of_rpc snapshot) !host;
+      pool := M.add reference (API.pool_t_of_rpc snapshot) !pool;
     | _ -> ()
   ) from.events;
   Lwt.return ()
 
 (* Call Event.from and process the events *)
 let from ?(token="") rpc session_id =
-  Event.from ~rpc ~session_id ~classes:["VM"; "host"] ~timeout:60. ~token
+  Client.Event.from ~rpc ~session_id ~classes:["VM"; "host"; "pool"] ~timeout:60. ~token
   >>= fun result ->
   let from = event_from_of_rpc result in
   process_events from
