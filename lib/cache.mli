@@ -21,5 +21,6 @@ type rpc = Rpc.call -> Rpc.response Lwt.t
 
 type session_id = string
 
-val receive_events: ?token:string -> rpc -> session_id -> 'a Lwt.t
-(** Receive events forever, populating the local cache *)
+val start: rpc -> session_id -> unit Lwt.t
+(** Blocks until the first batch of events is received, then receives
+    events forever, populating the local cache *)
