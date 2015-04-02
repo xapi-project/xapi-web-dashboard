@@ -31,7 +31,8 @@ let main () =
   let rpc = if !json then make_json !uri else make !uri in
   lwt session_id = Session.login_with_password rpc !username !password "1.0" in
   try_lwt
-    let (_: 'a Lwt.t) = Cache.receive_events rpc session_id in
+    Cache.start rpc session_id
+    >>= fun () ->
     Printf.fprintf stderr "Type a search query and hit enter:\n%!";
     let rec loop () =
       Lwt_io.read_line Lwt_io.stdin
