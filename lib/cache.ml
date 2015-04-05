@@ -29,16 +29,16 @@ let vm = ref M.empty
 let host = ref M.empty
 let pool = ref M.empty
 
-let process_events from =
+let process_events pool_ref from =
   List.iter (function
     | { ty = "vm"; reference; op = `del } ->
       vm := M.remove reference !vm
     | { ty = "vm"; reference; snapshot = Some snapshot } ->
-      vm := M.add reference (API.vM_t_of_rpc snapshot) !vm;
+      vm := M.add reference (pool_ref, API.vM_t_of_rpc snapshot) !vm;
     | { ty = "host"; reference; op = `del } ->
       host := M.remove reference !host
     | { ty = "host"; reference; snapshot = Some snapshot } ->
-      host := M.add reference (API.host_t_of_rpc snapshot) !host;
+      host := M.add reference (pool_ref, API.host_t_of_rpc snapshot) !host;
     | { ty = "pool"; reference; op = `del } ->
       pool := M.remove reference !pool
     | { ty = "pool"; reference; snapshot = Some snapshot } ->
@@ -48,22 +48,22 @@ let process_events from =
   Lwt.return ()
 
 (* Call Event.from and process the events *)
-let from ?(token="") rpc session_id =
+let from ?(token="") rpc session_id pool =
   Client.Event.from ~rpc ~session_id ~classes:["VM"; "host"; "pool"] ~timeout:60. ~token
   >>= fun result ->
   let from = event_from_of_rpc result in
-  process_events from
+  process_events pool from
   >>= fun () ->
   return from
 
 (* Blocks until the initial batch of events has been processed then
    starts a background thread receiving updates forever. *)
-let start rpc session_id =
-  from rpc session_id
+let start rpc session_id pool =
+  from rpc session_id pool
   >>= fun f ->
   let (_: 'a Lwt.t) =
     let rec loop f =
-      from ~token:f.token rpc session_id
+      from ~token:f.token rpc session_id pool
       >>= fun f ->
       loop f in
     loop f in

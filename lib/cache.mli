@@ -14,14 +14,14 @@
 
 module M : Map.S with type key = string
 
-val vm: API.vM_t M.t ref
-val host: API.host_t M.t ref
+val vm: (API.ref_pool * API.vM_t) M.t ref
+val host: (API.ref_pool * API.host_t) M.t ref
 val pool: API.pool_t M.t ref
 
 type rpc = Rpc.call -> Rpc.response Lwt.t
 
 type session_id = string
 
-val start: rpc -> session_id -> unit Lwt.t
+val start: rpc -> session_id -> API.ref_pool -> unit Lwt.t
 (** Blocks until the first batch of events is received, then receives
     events forever, populating the local cache *)

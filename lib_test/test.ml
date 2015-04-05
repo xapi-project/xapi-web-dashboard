@@ -31,7 +31,7 @@ let main () =
   let rpc = if !json then make_json !uri else make !uri in
   lwt session_id = Session.login_with_password rpc !username !password "1.0" in
   try_lwt
-    Cache.start rpc session_id
+    Cache.start rpc session_id "pool"
     >>= fun () ->
     Printf.fprintf stderr "Type a search query and hit enter:\n%!";
     let rec loop () =
@@ -39,9 +39,9 @@ let main () =
       >>= fun x ->
       let results = Search.query x in
       List.iteri (fun i x -> match x with
-      | `VM (rf, _) ->
+      | `VM (pool,rf, _) ->
         Printf.fprintf stderr "%d/%d: VM %s\n%!" i (List.length results) rf
-      | `Host (rf, _) ->
+      | `Host (pool,rf, _) ->
 	Printf.fprintf stderr "%d/%d: Host %s\n%!" i (List.length results) rf
       | `Pool (rf, _) ->
 	Printf.fprintf stderr "%d/%d: Pool %s\n%!" i (List.length results) rf
