@@ -39,10 +39,12 @@ let main () =
       >>= fun x ->
       let results = Search.query x in
       List.iteri (fun i x -> match x with
-        | `VM (rf, _) ->
-          Printf.fprintf stderr "%d/%d: VM %s\n%!" i (List.length results) rf
-				| `Host (rf, _) ->
-				  Printf.fprintf stderr "%d/%d: Host %s\n%!" i (List.length results) rf
+      | `VM (rf, _) ->
+        Printf.fprintf stderr "%d/%d: VM %s\n%!" i (List.length results) rf
+      | `Host (rf, _) ->
+	Printf.fprintf stderr "%d/%d: Host %s\n%!" i (List.length results) rf
+      | `Pool (rf, _) ->
+	Printf.fprintf stderr "%d/%d: Pool %s\n%!" i (List.length results) rf
       ) results;
       loop () in
     loop ()

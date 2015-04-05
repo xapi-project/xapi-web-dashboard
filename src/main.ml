@@ -18,25 +18,27 @@ let action () =
   let server = get_val "login_server" in
   let username = get_val "login_username" in
   let password = get_val "login_password" in
-  Connections.remember_host server username password;
-  let _ = Connections.iter_hosts (fun f ->
-      (Connections.connect f >>= fun i ->
-       Pools.render f i);
-      ()) in
+  let conn = Connections.remember_connection server username password in
+  Connections.connect (Connections.mkstate conn);
   Connections.close_host_modal ();
   ()
-  
 
-let onload _ =
-  let _ = Connections.iter_hosts (fun f ->
-      (Connections.connect f >>= fun i ->
-       Vms.render i);
-      ()) in
 
+let render () =
+  Firebug.console##log (Js.string "rendering...");
   let demo =
     Js.Opt.get (d##getElementById(Js.string "demo"))
       (fun () -> assert false) in
-  (* demo##innerHTML <- Js.string (Cow.Xml.to_string (testhtml 0)); *)
+  let states = Connections.all_states () in
+  let xmls = List.map Pools.render_one states in
+  let strs = List.map (fun xml -> Cow.Xml.to_string xml) xmls in
+  let all = String.concat "" strs in
+  Firebug.console##log (Js.string ("I'm supposed to be setting innerHTML to: " ^ all));
+  demo##innerHTML <- Js.string all;
+  Pools.connect_handlers ()
+  
+let onload _ =
+  Connections.init ();
 
   let login_button =
     Js.Opt.get (d##getElementById(Js.string "login_button"))
@@ -47,7 +49,9 @@ let onload _ =
   let chart = C3.generate "#chart" C3.example in
   C3.flow chart ~flow_to:(`Delete 0) C3.flow_example;
 
-  (*	Lwt.return ()*)
+  Pools.rerender := render;
+  
+  render ();
   Js._true
 
 let _ =

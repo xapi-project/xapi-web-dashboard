@@ -20,6 +20,7 @@ open Xen_api_lwt_unix
 type result = [
   | `VM of (string * API.vM_t)
   | `Host of (string * API.host_t)
+  | `Pool of (string * API.pool_t)
 ]
 
 let contains r x =
@@ -44,5 +45,12 @@ let query x =
     || (contains r host_t.API.host_name_label)
     then `Host (rf, host_t) :: acc
     else acc
-  ) host [] in
-  vms @ hosts
+    ) host [] in
+  let pool = !Cache.pool in
+  let pools = Cache.M.fold (fun rf pool_t acc ->
+    if String.lowercase x = "class:pool"
+    || (contains r pool_t.API.pool_name_label)
+    then `Pool (rf, pool_t) :: acc
+    else acc
+  ) pool [] in
+  vms @ hosts @ pools

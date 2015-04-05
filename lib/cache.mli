@@ -16,6 +16,7 @@ module M : Map.S with type key = string
 
 val vm: API.vM_t M.t ref
 val host: API.host_t M.t ref
+val pool: API.pool_t M.t ref
 
 type rpc = Rpc.call -> Rpc.response Lwt.t
 
