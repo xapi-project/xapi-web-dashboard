@@ -43,7 +43,9 @@ let onload _ =
       (fun () -> assert false) in
 
   login_button##onclick <- Dom_html.handler (fun _ -> action (); Js._true);
-  
+
+  let chart = C3.generate "#chart" C3.example in
+  C3.flow chart ~flow_to:(`Delete 0) C3.flow_example;
 
   (*	Lwt.return ()*)
   Js._true
