@@ -2,6 +2,7 @@ type column_type =
   | Line
   | Area
   | Area_spline
+  | Area_step
 
 type column = {
   label: string;
@@ -9,13 +10,15 @@ type column = {
   ty: column_type;
 }
 
-type data = { columns: column list }
+type data = {
+  columns: column list
+}
 
 let example = {
   columns = [
     { label = "data1";
       values = [ 30.; 200.; 100.; 400.; 150.; 250. ];
-      ty = Area;
+      ty = Area_step;
     }; {
       label = "data2";
       values = [ 50.; 20.; 10.; 40.; 15.; 25. ];
@@ -46,6 +49,7 @@ let string_of_column_type = function
   | Line -> "line"
   | Area -> "area"
   | Area_spline -> "area-spline"
+  | Area_step -> "area-step"
 
 let generate bindto data =
   let arg =
