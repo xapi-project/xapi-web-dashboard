@@ -42,44 +42,6 @@ let example = {
   ]
 }
 
-(* The javascript example was:
-
-var chart = c3.generate({
-  bindto: '#chart',
-  data: {
-    columns: [
-      ['data1', 30, 200, 100, 400, 150, 250],
-      ['data2', 50, 20, 10, 40, 15, 25]
-    ],
-    types: {
-      data1: 'area',
-      data2: 'area-spline'
-    }
-  }
-});
-
-var chart = c3.generate({
-    data: {
-        x: 'x',
-        columns: [
-            ['x', '2012-12-29', '2012-12-30', '2012-12-31'],
-            ['data1', 230, 300, 330],
-            ['data2', 190, 230, 200],
-            ['data3', 90, 130, 180],
-        ]
-    },
-    axis: {
-        x: {
-            type: 'timeseries',
-            tick: {
-                format: '%m/%d',
-            }
-        }
-    }
-});
-
-*)
-
 let string_of_column_type = function
   | Line -> "line"
   | Area -> "area"
