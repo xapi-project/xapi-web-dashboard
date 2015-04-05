@@ -15,10 +15,11 @@
 open Lwt
 
 open Xen_api
-open Xen_api_lwt_unix
 open Event_types
 
 module M = Map.Make(String)
+
+module Client=Client.ClientF(Lwt)
 
 type rpc = Rpc.call -> Rpc.response Lwt.t
 type session_id = string
@@ -47,7 +48,7 @@ let process_events from =
 
 (* Call Event.from and process the events *)
 let from ?(token="") rpc session_id =
-  Event.from ~rpc ~session_id ~classes:["VM"; "host"] ~timeout:60. ~token
+  Client.Event.from ~rpc ~session_id ~classes:["VM"; "host"] ~timeout:60. ~token
   >>= fun result ->
   let from = event_from_of_rpc result in
   process_events from
