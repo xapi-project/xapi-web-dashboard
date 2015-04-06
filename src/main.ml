@@ -74,6 +74,10 @@ let onload _ =
   let search_button = get_btn "search_text_button" in
   search_button##onclick <- Dom_html.handler (fun _ -> render (); Js._true);
 
+  let input = get_by_id "search_text_box" in
+  let input_node = Js.Opt.get (Dom_html.CoerceTo.input input) (fun _ -> assert false) in
+  input_node##onchange <- Dom_html.handler (fun _ -> render (); Js._true);
+  
   let connect_icon_button (button,v) =
     let button = get_btn button in
     button##onclick <- Dom_html.handler (fun _ ->

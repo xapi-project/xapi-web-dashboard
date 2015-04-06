@@ -2,7 +2,8 @@ open Connections
 open Lwt
 
 let vm_op_button = "btn_vm_op"
-
+let vm_metrics_button = "btn_vm_metrics"
+  
 let button_handler ev =
   let vm_ref = Jsutils.data_attr_of_event ev "vm" in
   let op = Jsutils.data_attr_of_event ev "op" in
@@ -25,7 +26,23 @@ let button_handler ev =
   in
   Js._true
 
+let chart_handler ev =
+  let vm_ref = Jsutils.data_attr_of_event ev "vm" in
+  let states = Connections.all_states () in
+  let (pool_ref,_) = Cache.M.find vm_ref !Cache.vm in
+  let st = List.find (fun state -> state.pool_ref = pool_ref) states in
+  Graph.open_chart_modal ();
+  let chart = C3.generate "#chart" C3.example in
+  let (_ : 'a Lwt.t) = Graph.watch_rrds chart st in
+  Js._true
+    
+
 let vm vm_ref vm_rec =
+  let memory = Printf.sprintf "%Ld" vm_rec.API.vM_memory_static_max in
+  let vcpus = Printf.sprintf "%Ld" vm_rec.API.vM_VCPUs_max in
+  let vbds = string_of_int (List.length vm_rec.API.vM_VBDs) in
+  let vifs = string_of_int (List.length vm_rec.API.vM_VIFs) in
+  let current_ops = String.concat "," (List.map (fun (_,op) -> Rpc.to_string (API.rpc_of_vm_operations op)) vm_rec.API.vM_current_operations) in
   let power_state =
     match vm_rec.API.vM_power_state with
     | `Halted -> "Halted"
@@ -44,18 +61,35 @@ let vm vm_ref vm_rec =
     | _ ->
       None
   in
-  let ops = List.fold_left (fun acc x -> match button_of_allowed_op x with Some r -> r::acc | None -> acc) [] vm_rec.vM_allowed_operations in
+  let metrics_btn = <:xml< <li data-vm="$str:vm_ref$" class="button btn_vm_metrics"><i class="fa fa-bar-chart"> </i></li> >> in
+  let ops = List.fold_left (fun acc x -> match button_of_allowed_op x with Some r -> r::acc | None -> acc) [metrics_btn] vm_rec.API.vM_allowed_operations in
   <:xml<
     <div class="panel">
       <div class="row">
-      <div class="medium-8 small-12 columns">
-        <h3><a href="#">$str:vm_rec.API.vM_name_label$</a></h3>
-        <h5 class="left subheader">$str:vm_rec.API.vM_name_description$</h5>
+        <div class="medium-8 small-12 columns">
+          <h4><a href="#">$str:vm_rec.API.vM_name_label$</a></h4>
+          <p class="left subheader">$str:vm_rec.API.vM_name_description$</p>
+        </div>
+        <div class="medium-4 small-12 columns right">
+          <strong>Power state: </strong><span class="">$str:power_state$</span>
+        </div>
       </div>
-      <div class="medium-4 small-12 columns right">
-        <strong>Power state: </strong><span class="">$str:power_state$</span>
-        <ul class="button-group even-6">$list:ops$</ul>
-      </div>
+      <div class="row">
+        <div class="medium-4 small-12 columns">
+          <ul>
+	    <li><strong>Current ops: </strong>$str:current_ops$</li>
+	    <li><strong>Memory: </strong>$str:memory$</li>
+	    <li><strong>VCPUs: </strong>$str:vcpus$</li>
+          </ul>
+        </div>
+        <div class="medium-4 small-12 columns">
+          <p>VBDs: $str:vbds$</p>
+	  <p>VIFs: $str:vifs$</p>
+        </div>
+        <div class="medium-4 small-12 columns">
+          <ul class="button-group even-6">$list:ops$</ul>
+
+        </div>
       </div>
     </div>
    >>
@@ -79,3 +113,4 @@ let connect_handlers () =
       Js.to_bool (elt##classList##contains(Js.string cls))) elts
   in
   List.iter (fun elt -> elt##onclick <- Dom_html.handler button_handler) (get_elts vm_op_button);
+  List.iter (fun elt -> elt##onclick <- Dom_html.handler chart_handler) (get_elts vm_metrics_button);

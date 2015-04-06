@@ -47,7 +47,7 @@ let forget_handler ev =
 let render_disconnected st =
   let strstate = match st.st with
     | Disconnected -> <:xml< Disconnected >>
-    | Connecting -> <:xml< Connecting >>
+    | Connecting -> <:xml< <i class="fa fa-cog fa-spin"> </i> Connecting >>
     | Connected -> <:xml< Uh, connected? >>
   in
   let host = st.c.host in
@@ -55,7 +55,7 @@ let render_disconnected st =
     <div class="panel">
       <div class="row">
 	<div class="medium-8 small-12 columns">
-	  <h3 class="left"><a href="#">$str:host$</a></h3>
+	  <h4 class="left"><a href="#">$str:host$</a></h4>
 	</div>
 	<div class="medium-4 small-12 columns right">
 	  <strong>State: </strong>$strstate$
@@ -77,14 +77,16 @@ let render_disconnected st =
     </div>
   >>
 
-let render_pool st id name master_name master_address =
+let render_pool st id name master_name master_address master_rec =
   let host = st.c.host in
+  let num_vms = Cache.M.fold (fun key (p_ref, v) acc -> if p_ref = st.pool_ref && not v.API.vM_is_a_template then 1+acc else acc) !Cache.vm 0 in
+  let num_hosts = Cache.M.fold (fun key (p_ref, v) acc -> if p_ref = st.pool_ref then 1+acc else acc) !Cache.host 0 in
   <:xml< 
     <div class="panel" id="$str:id$">
       
       <div class="row">
 	<div class="medium-8 small-12 columns">
-	  <h3 class="left"><a href="#">$str:name$</a></h3>
+	  <h4 class="left"><a href="#">$str:name$</a></h4>
 	</div>
 	<div class="medium-4 small-12 columns right">
 	  <strong>State: </strong><span class="">Connected</span>
@@ -96,14 +98,15 @@ let render_pool st id name master_name master_address =
           <ul>
 	    <li><strong>Master: </strong>$str:master_name$</li>
 	    <li><strong>Master IP: </strong>$str:master_address$</li>
-	    <li><strong>VMs: </strong>503</li>
-	    <li><strong>hosts: </strong>16</li>
+	    <li><strong>VMs: </strong>$int:num_vms$</li>
+	    <li><strong>Hosts: </strong>$int:num_hosts$</li>
 	  </ul>
 	</div>
 	
 	<div class="medium-4 small-12 columns">
-	  <p><a href="#"># VMs: 501</a></p>
-	  <p><a href="#"># Hosts: 16</a></p>
+          <ul>
+	  <li><strong>XS Version: </strong>$str:List.assoc "product_version" master_rec.API.host_software_version$</li>
+	  </ul>
 	</div>
 
 	<div class="medium-4 small-12 columns">
@@ -132,7 +135,7 @@ let render_one st =
     let address = master_rec.API.host_address in
     begin
       try
-	let result = render_pool st pool_ref pool_name master_rec.API.host_name_label address in
+	let result = render_pool st pool_ref pool_name master_rec.API.host_name_label address master_rec in
         Firebug.console##log (Js.string ("called render_pool"));
         result
       with e ->

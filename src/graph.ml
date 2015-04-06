@@ -18,6 +18,12 @@ let do_get ~uri =
   Lwt.on_cancel res (fun () -> req##abort ()) ;
   res
 
+let open_chart_modal () =
+  Js.Unsafe.fun_call (Js.Unsafe.variable "open_chart_modal") [| |]
+
+let close_chart_modal () =
+  Js.Unsafe.fun_call (Js.Unsafe.variable "close_chart_modal") [| |]
+
 let endswith suffix x =
   let suffix' = String.length suffix in
 	let x' = String.length x in
@@ -30,7 +36,7 @@ let render_update chart update =
 	  (fun (idx, chosen) elt ->
 			if chosen >=0 then (idx + 1, chosen)
 			else
-			  if endswith "free_kib" elt
+			  if endswith "cpu0" elt
 				then (idx + 1, idx)
 				else (idx + 1, chosen)
 		) (0, -1) update.legend in
@@ -49,7 +55,7 @@ let render_update chart update =
 			List.map (fun x -> Int64.to_float (fst x)) points,
 			[
 		    {
-		      C3.label = "host free memory";
+		      C3.label = "CPU usage";
 		      values = List.map snd points;
 		      ty = Area_step;
 		    }
@@ -61,18 +67,20 @@ let render_update chart update =
 
 let watch_rrds chart { Connections.session; c = { Connections.host } } =
   let host = Uri.make ~scheme:"http" ~host () in
-	let rec loop start =
-    let uri = Xen_api_metrics.Updates.uri
-	    ~host ~authentication:(`Session_id session)
-		  ~start ~include_host:true
-		  () in
-		do_get ~uri
-		>>= fun txt ->
-		let update = Xen_api_metrics.Updates.parse txt in
-		Firebug.console##log(Js.string "got some updates");
-		render_update chart update;
-		Lwt_js.sleep 5.
-		>>= fun () ->
-		loop (Int64.to_int update.Rrd_updates.end_time) in
-	(* XXX: query server's current clock *)
-	loop 999999999
+  let uri start = Xen_api_metrics.Updates.uri
+      ~host ~authentication:(`Session_id session)
+      ~start ~include_host:true
+      () in
+  let rec loop start =
+    do_get ~uri:(uri start)
+    >>= fun txt ->
+    let update = Xen_api_metrics.Updates.parse txt in
+    Firebug.console##log(Js.string "got some updates");
+    render_update chart update;
+    Lwt_js.sleep 5.
+    >>= fun () ->
+    loop (Int64.to_int update.Rrd_updates.end_time) in
+  (* XXX: query server's current clock *)
+  do_get ~uri:(uri 1500000000) >>= fun txt ->
+  let update = Xen_api_metrics.Updates.parse txt in
+  loop ((Int64.to_int update.Rrd_updates.end_time) - 60*9)
