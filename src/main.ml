@@ -78,6 +78,7 @@ let onload _ =
     ("icon_bar_vms","class:vm");
     ("icon_bar_alerts","class:message")];
 
+(*
   let chart = C3.generate "#chart" C3.example in
 
   let rpc = Connections.testrpc "cubieboard2.local." in
@@ -86,10 +87,10 @@ let onload _ =
     >>= fun session ->
     Graph.watch_rrds chart
     { Connections.host = "cubieboard2.local."; username=""; password=""; session } in
-
+*)
 
   Pools.rerender := render;
-  
+
   render ();
   Js._true
 
