@@ -24,7 +24,13 @@ let action () =
   let username = get_val "login_username" in
   let password = get_val "login_password" in
   let conn = Connections.remember_connection server username password in
-  Connections.connect (Connections.mkstate conn);
+  let (_: 'a Lwt.t) =
+    Connections.connect (Connections.mkstate conn);
+    >>= fun (st, _) ->
+    (* Start displaying a graph, for fun *)
+    let chart = C3.generate "#chart" C3.example in
+    Graph.watch_rrds chart st in
+
   Connections.close_host_modal ();
   ()
 
@@ -52,7 +58,7 @@ let render () =
   Firebug.console##log (Js.string ("I'm supposed to be setting innerHTML to: " ^ all));
   demo##innerHTML <- Js.string all;
   Pools.connect_handlers ()
-  
+
 let onload _ =
   Connections.init ();
 
@@ -77,17 +83,6 @@ let onload _ =
     ("icon_bar_hosts","class:host");
     ("icon_bar_vms","class:vm");
     ("icon_bar_alerts","class:message")];
-
-(*
-  let chart = C3.generate "#chart" C3.example in
-
-  let rpc = Connections.testrpc "cubieboard2.local." in
-  let (_: 'a Lwt.t) =
-    Connections.Client.Session.login_with_password rpc "mirage" "mirage" "1.0"
-    >>= fun session ->
-    Graph.watch_rrds chart
-    { Connections.host = "cubieboard2.local."; username=""; password=""; session } in
-*)
 
   Pools.rerender := render;
 
