@@ -47,6 +47,14 @@ let onload _ =
   let chart = C3.generate "#chart" C3.example in
   C3.flow chart ~flow_to:(`Delete 0) C3.flow_example;
 
+  let rpc = Connections.testrpc "cubieboard2.local." in
+  let (_: 'a Lwt.t) =
+    Connections.Client.Session.login_with_password rpc "mirage" "mirage" "1.0"
+    >>= fun session ->
+    Graph.watch_rrds
+    { Connections.host = "cubieboard2.local."; username=""; password=""; session } in
+
+
   (*	Lwt.return ()*)
   Js._true
 
