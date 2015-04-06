@@ -12,6 +12,11 @@ let get_val id =
   let v = input_node##value in
   Js.to_string v
 
+let set_val id v =
+  let input = get_by_id id in
+  let input_node = Js.Opt.get (Dom_html.CoerceTo.input input) (fun _ -> assert false) in
+  input_node##value <- Js.string v
+
 open Lwt
 
 let action () =
@@ -30,8 +35,19 @@ let render () =
     Js.Opt.get (d##getElementById(Js.string "demo"))
       (fun () -> assert false) in
   let states = Connections.all_states () in
-  let xmls = List.map Pools.render_one states in
-  let strs = List.map (fun xml -> Cow.Xml.to_string xml) xmls in
+  let v = get_val "search_text_box" in
+  let search = Search.query v in
+  let xmls = List.map (function
+    | `VM (p,r,vm_rec) ->
+      Vms.vm vm_rec
+    | `Host (p,r,host_rec) ->
+      <:xml< <span>host</span> >>
+    | `Pool (r,pool_rec) ->
+      let st = List.find (fun st -> st.Connections.pool_ref = r) states in
+      Pools.render_one st) search in
+  let disconnected = List.filter (fun st -> st.Connections.st <> Connections.Connected) states in
+  let more_xml = List.map Pools.render_one disconnected in
+  let strs = List.map (fun xml -> Cow.Xml.to_string xml) (more_xml @ xmls) in
   let all = String.concat "" strs in
   Firebug.console##log (Js.string ("I'm supposed to be setting innerHTML to: " ^ all));
   demo##innerHTML <- Js.string all;
@@ -40,11 +56,27 @@ let render () =
 let onload _ =
   Connections.init ();
 
-  let login_button =
-    Js.Opt.get (d##getElementById(Js.string "login_button"))
+  let get_btn btn =
+    Js.Opt.get (d##getElementById(Js.string btn))
       (fun () -> assert false) in
 
+  let login_button = get_btn "login_button" in
   login_button##onclick <- Dom_html.handler (fun _ -> action (); Js._true);
+
+  let search_button = get_btn "search_text_button" in
+  search_button##onclick <- Dom_html.handler (fun _ -> render (); Js._true);
+
+  let connect_icon_button (button,v) =
+    let button = get_btn button in
+    button##onclick <- Dom_html.handler (fun _ ->
+	set_val "search_text_box" v;
+	render (); Js._true)
+  in
+  List.iter connect_icon_button [
+    ("icon_bar_pools","class:pool");
+    ("icon_bar_hosts","class:host");
+    ("icon_bar_vms","class:vm");
+    ("icon_bar_alerts","class:message")];
 
   let chart = C3.generate "#chart" C3.example in
   C3.flow chart ~flow_to:(`Delete 0) C3.flow_example;

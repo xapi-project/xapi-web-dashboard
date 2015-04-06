@@ -35,10 +35,10 @@
 		  <li class="has-form">
 		    <div class="row collapse">
 		      <div class="small-8 large-7 columns">
-			<input type="text" placeholder="Search" value="class:host">
+			<input type="text" placeholder="Search" value="class:pool" id="search_text_box">
 		      </div>
 		      <div class="small-3 large-3 end columns">
-			<a href="#" class="alert button expand">Filter</a>
+			<a href="#" class="alert button expand" id="search_text_button">Filter</a>
 		      </div>
 		    </div>
 		  </li>
@@ -51,19 +51,19 @@
 	<div class="row">
 	  <div class="large-12 columns">
 	    <div class="icon-bar four-up">
-	      <a class="item">
+	      <a class="item" id="icon_bar_pools">
 		<i class="fa fa-cloud"></i>
 		<label>Pools</label>
 	      </a>
-	      <a class="item">
+	      <a class="item" id="icon_bar_hosts">
 		<i class="fa fa-server"></i>
 		<label>Hosts</label>
 	      </a>
-	      <a class="item">
+	      <a class="item" id="icon_bar_vms">
 		<i class="fa fa-desktop"></i>
 		<label>VMs</label>
 	      </a>
-	      <a class="item">
+	      <a class="item" id="icon_bar_alerts">
 		<i class="fa fa-exclamation"></i>
 		<label>Alerts</label>
 	      </a>

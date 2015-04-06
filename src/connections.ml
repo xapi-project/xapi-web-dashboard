@@ -105,7 +105,7 @@ let connect st =
   st.pool_ref <- List.hd pool_refs;
   st.session <- session;
   st.st <- Connecting;
-  let th = Cache.start st.rpc st.session in
+  let th = Cache.start st.rpc st.session st.pool_ref in
   Firebug.console##log (Js.string ("cache started " ^ st.c.host));
   Lwt.return (st, th)
   

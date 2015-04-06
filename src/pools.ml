@@ -124,7 +124,7 @@ let render_one st =
     let pool_ref = st.pool_ref in
     let pool_rec = Cache.M.find pool_ref !Cache.pool in
     let master = pool_rec.API.pool_master in
-    let master_rec = Cache.M.find master !Cache.host in
+    let (_,master_rec) = Cache.M.find master !Cache.host in
     let pool_name =
       if String.length pool_rec.API.pool_name_label = 0
       then master_rec.API.host_name_label
