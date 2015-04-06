@@ -29,6 +29,8 @@ let vm = ref M.empty
 let host = ref M.empty
 let pool = ref M.empty
 
+let notify = ref (fun () -> ())
+
 let process_events pool_ref from =
   List.iter (function
     | { ty = "vm"; reference; op = `del } ->
@@ -45,6 +47,7 @@ let process_events pool_ref from =
       pool := M.add reference (API.pool_t_of_rpc snapshot) !pool;
     | _ -> ()
   ) from.events;
+  !notify ();
   Lwt.return ()
 
 (* Call Event.from and process the events *)

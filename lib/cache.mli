@@ -14,6 +14,8 @@
 
 module M : Map.S with type key = string
 
+val notify: (unit -> unit) ref
+
 val vm: (API.ref_pool * API.vM_t) M.t ref
 val host: (API.ref_pool * API.host_t) M.t ref
 val pool: API.pool_t M.t ref

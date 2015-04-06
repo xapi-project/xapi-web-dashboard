@@ -45,19 +45,21 @@ let render () =
   let search = Search.query v in
   let xmls = List.map (function
     | `VM (p,r,vm_rec) ->
-      Vms.vm vm_rec
+      if vm_rec.API.vM_is_a_template then None else Some (Vms.vm r vm_rec)
     | `Host (p,r,host_rec) ->
-      <:xml< <span>host</span> >>
+      Some <:xml< <span>host</span> >>
     | `Pool (r,pool_rec) ->
       let st = List.find (fun st -> st.Connections.pool_ref = r) states in
-      Pools.render_one st) search in
+      Some (Pools.render_one st)) search in
+  let xmls = List.fold_left (fun acc x -> match x with Some y -> y::acc | None -> acc) [] xmls in
   let disconnected = List.filter (fun st -> st.Connections.st <> Connections.Connected) states in
   let more_xml = List.map Pools.render_one disconnected in
   let strs = List.map (fun xml -> Cow.Xml.to_string xml) (more_xml @ xmls) in
   let all = String.concat "" strs in
   Firebug.console##log (Js.string ("I'm supposed to be setting innerHTML to: " ^ all));
   demo##innerHTML <- Js.string all;
-  Pools.connect_handlers ()
+  Pools.connect_handlers ();
+  Vms.connect_handlers ()
 
 let onload _ =
   Connections.init ();
@@ -83,6 +85,8 @@ let onload _ =
     ("icon_bar_hosts","class:host");
     ("icon_bar_vms","class:vm");
     ("icon_bar_alerts","class:message")];
+
+  Cache.notify := render;
 
   Pools.rerender := render;
 
