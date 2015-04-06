@@ -45,13 +45,12 @@ let onload _ =
   login_button##onclick <- Dom_html.handler (fun _ -> action (); Js._true);
 
   let chart = C3.generate "#chart" C3.example in
-  C3.flow chart ~flow_to:(`Delete 0) C3.flow_example;
 
   let rpc = Connections.testrpc "cubieboard2.local." in
   let (_: 'a Lwt.t) =
     Connections.Client.Session.login_with_password rpc "mirage" "mirage" "1.0"
     >>= fun session ->
-    Graph.watch_rrds
+    Graph.watch_rrds chart
     { Connections.host = "cubieboard2.local."; username=""; password=""; session } in
 
 
