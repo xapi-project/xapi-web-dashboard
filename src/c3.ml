@@ -20,7 +20,7 @@ type axis = {
 
 type data = {
   x_axis: axis option;
-  columns: (string list) * column list;
+  columns: (float list) * column list;
 }
 
 let example = {
@@ -29,34 +29,13 @@ let example = {
     format = "%m/%d";
   };
   columns = (
-    [ "2012-12-29"; "2012-12-30"; "2012-12-31"; "2013-01-01"; "2013-01-02"; "2013-01-03"],
-    [
-      { label = "data1";
-        values = [ 30.; 200.; 100.; 400.; 150.; 250. ];
+    [],
+    [ { label = "host free memory";
+        values = [];
         ty = Area_step;
-      }; {
-        label = "data2";
-        values = [ 50.; 20.; 10.; 40.; 15.; 25. ];
-        ty = Line;
-      }
-    ]
+      } ]
   )
 }
-
-let flow_example = (
-  [ "2013-01-04"; "2013-01-05"; "2013-01-06"; "2013-01-07"; "2013-01-08"; "2013-01-09" ],
-  [
-    {
-      label = "data1";
-      values = [ 240.; 230.; 220.; 210.; 200.; 190. ];
-      ty = Area_step;
-    }; {
-      label = "data2";
-      values = [ 50.; 40.; 30.; 20.; 10.; 0. ];
-      ty = Line
-    }
-  ]
-)
 
 let string_of_column_type = function
   | Line -> "line"
@@ -80,7 +59,7 @@ let js_of_columns (tics, columns) =
       match tics with
       | [] -> data_columns
       | tics ->
-        let tics = Js.array (Array.of_list (inject (Js.string "x") :: (List.map (fun x -> inject (Js.string x)) tics))) in
+        let tics = Js.array (Array.of_list (inject (Js.string "x") :: (List.map (fun x -> inject (1000.0 *. x)) tics))) in
         tics :: data_columns
     )))
   )
@@ -104,7 +83,10 @@ let generate bindto data =
 
     let data =
       Js.Unsafe.(
-        (if data.x_axis = None then [] else [ "x", inject (Js.string "x") ]) @ [
+        (if data.x_axis = None then [] else [
+          "x", inject (Js.string "x");
+          "xFormat", inject (Js.string "%s")
+        ]) @ [
           "columns", columns;
           "types", obj (Array.of_list (List.map (fun column ->
             column.label, inject (Js.string (string_of_column_type column.ty))
