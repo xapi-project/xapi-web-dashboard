@@ -59,7 +59,7 @@ let render_update chart update =
 
 	end
 
-let watch_rrds chart { Connections.host; session } =
+let watch_rrds chart { Connections.session; c = { Connections.host } } =
   let host = Uri.make ~scheme:"http" ~host () in
 	let rec loop start =
     let uri = Xen_api_metrics.Updates.uri
