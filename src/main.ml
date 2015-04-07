@@ -19,22 +19,6 @@ let set_val id v =
 
 open Lwt
 
-let action () =
-  let server = get_val "login_server" in
-  let username = get_val "login_username" in
-  let password = get_val "login_password" in
-  let conn = Connections.remember_connection server username password in
-  let (_: 'a Lwt.t) =
-    Connections.connect (Connections.mkstate conn);
-    >>= fun (st, _) ->
-    (* Start displaying a graph, for fun *)
-    let chart = C3.generate "#chart" C3.example in
-    Graph.watch_rrds chart st in
-
-  Connections.close_host_modal ();
-  ()
-
-
 let render () =
   Firebug.console##log (Js.string "rendering...");
   let demo =
@@ -60,6 +44,24 @@ let render () =
   demo##innerHTML <- Js.string all;
   Pools.connect_handlers ();
   Vms.connect_handlers ()
+
+let action () =
+  let server = get_val "login_server" in
+  let username = get_val "login_username" in
+  let password = get_val "login_password" in
+  let conn = Connections.remember_connection server username password in
+  let (_: 'a Lwt.t) =
+    Connections.connect (Connections.add conn) >>= fun (st, th) ->
+    render ();
+    th >>= fun () ->
+    st.st <- Connected;
+    render ();
+    Lwt.return ()
+  in
+  Connections.close_host_modal ();
+  ()
+
+
 
 let onload _ =
   Connections.init ();
