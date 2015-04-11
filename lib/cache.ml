@@ -27,6 +27,7 @@ type session_id = string
 
 let vm = ref M.empty
 let host = ref M.empty
+let host_metrics = ref M.empty
 let pool = ref M.empty
 
 let notify = ref (fun () -> ())
@@ -41,6 +42,10 @@ let process_events pool_ref from =
       host := M.remove reference !host
     | { ty = "host"; reference; snapshot = Some snapshot } ->
       host := M.add reference (pool_ref, API.host_t_of_rpc snapshot) !host;
+    | { ty = "host_metrics"; reference; op = `del } ->
+      host_metrics := M.remove reference !host_metrics
+    | { ty = "host_metrics"; reference; snapshot = Some snapshot } ->
+      host_metrics := M.add reference (pool_ref, API.host_metrics_t_of_rpc snapshot) !host_metrics;
     | { ty = "pool"; reference; op = `del } ->
       pool := M.remove reference !pool
     | { ty = "pool"; reference; snapshot = Some snapshot } ->
@@ -52,7 +57,7 @@ let process_events pool_ref from =
 
 (* Call Event.from and process the events *)
 let from ?(token="") rpc session_id pool =
-  Client.Event.from ~rpc ~session_id ~classes:["VM"; "host"; "pool"] ~timeout:60. ~token
+  Client.Event.from ~rpc ~session_id ~classes:["VM"; "host"; "host_metrics"; "pool"] ~timeout:60. ~token
   >>= fun result ->
   let from = event_from_of_rpc result in
   process_events pool from
