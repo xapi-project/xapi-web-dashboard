@@ -45,6 +45,8 @@ let main () =
 	Printf.fprintf stderr "%d/%d: Host %s\n%!" i (List.length results) rf
       | `Pool (rf, _) ->
 	Printf.fprintf stderr "%d/%d: Pool %s\n%!" i (List.length results) rf
+	    | `Message (pool, rf, _) ->
+	Printf.fprintf stderr "%d/%d: Message %s\n%!" i (List.length results) rf
       ) results;
       loop () in
     loop ()

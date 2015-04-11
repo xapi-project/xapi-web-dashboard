@@ -29,6 +29,7 @@ let vm = ref M.empty
 let host = ref M.empty
 let host_metrics = ref M.empty
 let pool = ref M.empty
+let message = ref M.empty
 
 let notify = ref (fun () -> ())
 
@@ -50,23 +51,41 @@ let process_events pool_ref from =
       pool := M.remove reference !pool
     | { ty = "pool"; reference; snapshot = Some snapshot } ->
       pool := M.add reference (API.pool_t_of_rpc snapshot) !pool;
+    | { ty = "message"; reference; op = `del } ->
+      message := M.remove reference !message
+    | { ty = "message"; reference; snapshot = Some snapshot } ->
+      message := M.add reference (pool_ref, API.message_t_of_rpc snapshot) !message;
     | _ -> ()
   ) from.events;
   !notify ();
   Lwt.return ()
 
+let classes = ["VM"; "host"; "host_metrics"; "pool"]
+
 (* Call Event.from and process the events *)
 let from ?(token="") rpc session_id pool =
-  Client.Event.from ~rpc ~session_id ~classes:["VM"; "host"; "host_metrics"; "pool"] ~timeout:60. ~token
+  Client.Event.from ~rpc ~session_id ~classes ~timeout:60. ~token
   >>= fun result ->
   let from = event_from_of_rpc result in
   process_events pool from
   >>= fun () ->
   return from
 
+(* Old messages have to be fetched explicitly *)
+let get_old_messages rpc session_id pool =
+  (* XXX: should use get_since to avoid downloading 10000 records *)
+  Client.Message.get_all_records rpc session_id
+  >>= fun ms ->
+  List.iter (fun (rf, message_t) ->
+    message := M.add rf (pool, message_t) !message
+  ) ms;
+  return ()
+
 (* Blocks until the initial batch of events has been processed then
    starts a background thread receiving updates forever. *)
 let start rpc session_id pool =
+  get_old_messages rpc session_id pool
+  >>= fun () ->
   from rpc session_id pool
   >>= fun f ->
   let (_: 'a Lwt.t) =

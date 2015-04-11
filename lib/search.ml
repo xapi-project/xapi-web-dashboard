@@ -21,6 +21,7 @@ type result = [
   | `VM of (API.ref_pool * API.ref_VM * API.vM_t)
   | `Host of (API.ref_pool * API.ref_host * API.host_t)
   | `Pool of (API.ref_pool * API.pool_t)
+  | `Message of (API.ref_pool * API.ref_message * API.message_t)
 ]
 
 let contains r x =
@@ -36,6 +37,7 @@ let query x =
   let vms = Cache.M.fold (fun rf (pool_ref, vm_t) acc ->
     if String.lowercase x = "class:vm"
     || (contains r vm_t.API.vM_name_label)
+    || (contains r vm_t.API.vM_uuid)
     then `VM (pool_ref, rf, vm_t) :: acc
     else acc
   ) vm [] in
@@ -43,6 +45,7 @@ let query x =
   let hosts = Cache.M.fold (fun rf (pool_ref, host_t) acc ->
     if String.lowercase x = "class:host"
     || (contains r host_t.API.host_name_label)
+    || (contains r host_t.API.host_uuid)
     then `Host (pool_ref, rf, host_t) :: acc
     else acc
     ) host [] in
@@ -50,7 +53,16 @@ let query x =
   let pools = Cache.M.fold (fun rf pool_t acc ->
     if String.lowercase x = "class:pool"
     || (contains r pool_t.API.pool_name_label)
+    || (contains r pool_t.API.pool_uuid)
     then `Pool (rf, pool_t) :: acc
     else acc
   ) pool [] in
-  vms @ hosts @ pools
+  let message = !Cache.message in
+  let messages = Cache.M.fold (fun rf (pool_ref, message_t) acc ->
+    if String.lowercase x = "class:message"
+    || (contains r message_t.API.message_name)
+    || (contains r message_t.API.message_uuid)
+    then `Message (pool_ref, rf, message_t) :: acc
+    else acc
+  ) message [] in
+  vms @ hosts @ pools @ messages
