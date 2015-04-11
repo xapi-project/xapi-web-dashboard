@@ -35,10 +35,10 @@ let chart_handler ev =
   let chart = C3.generate "#chart" C3.example in
   let (_ : 'a Lwt.t) = Graph.watch_rrds chart st in
   Js._true
-    
+
 
 let vm vm_ref vm_rec =
-  let memory = Printf.sprintf "%Ld" vm_rec.API.vM_memory_static_max in
+  let memory = Memory.to_string vm_rec.API.vM_memory_static_max in
   let vcpus = Printf.sprintf "%Ld" vm_rec.API.vM_VCPUs_max in
   let vbds = string_of_int (List.length vm_rec.API.vM_VBDs) in
   let vifs = string_of_int (List.length vm_rec.API.vM_VIFs) in
