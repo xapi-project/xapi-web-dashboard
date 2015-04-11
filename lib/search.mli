@@ -16,6 +16,7 @@ type result = [
   | `VM of (API.ref_pool * API.ref_VM * API.vM_t)
   | `Host of (API.ref_pool * API.ref_host * API.host_t)
   | `Pool of (API.ref_pool * API.pool_t)
+  | `Message of (API.ref_pool * API.ref_message * API.message_t)
 ]
 
 val query: string -> result list

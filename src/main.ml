@@ -34,7 +34,10 @@ let render () =
       Some (Hosts.host r host_rec)
     | `Pool (r,pool_rec) ->
       let st = List.find (fun st -> st.Connections.pool_ref = r) states in
-      Some (Pools.render_one st)) search in
+      Some (Pools.render_one st)
+    | `Message (p,r,message_rec) ->
+      Some (Messages.message (r, message_rec))
+  ) search in
   let xmls = List.fold_left (fun acc x -> match x with Some y -> y::acc | None -> acc) [] xmls in
   let disconnected = List.filter (fun st -> st.Connections.st <> Connections.Connected) states in
   let more_xml = List.map Pools.render_one disconnected in
@@ -44,6 +47,9 @@ let render () =
   demo##innerHTML <- Js.string all;
   Pools.connect_handlers ();
   Vms.connect_handlers ();
+  Hosts.connect_handlers ();
+  (* Dropdowns require us to reinitialise foundation again *)
+  Js.Unsafe.fun_call (Js.Unsafe.variable "reinitialise_foundation") [| |];
   Firebug.console##log (Js.string "... render complete")
 
 let action () =
