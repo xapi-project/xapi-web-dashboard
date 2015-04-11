@@ -81,9 +81,14 @@ let render_pool st id name master_name master_address master_rec =
   let host = st.c.host in
   let num_vms = Cache.M.fold (fun key (p_ref, v) acc -> if p_ref = st.pool_ref && not v.API.vM_is_a_template then 1+acc else acc) !Cache.vm 0 in
   let num_hosts = Cache.M.fold (fun key (p_ref, v) acc -> if p_ref = st.pool_ref then 1+acc else acc) !Cache.host 0 in
-  <:xml< 
+  let product_version =
+    try
+      List.assoc "product_version" master_rec.API.host_software_version
+    with Not_found ->
+      "unknown version" in
+  <:xml<
     <div class="panel" id="$str:id$">
-      
+
       <div class="row">
 	<div class="medium-8 small-12 columns">
 	  <h4 class="left"><a href="#">$str:name$</a></h4>
@@ -102,19 +107,19 @@ let render_pool st id name master_name master_address master_rec =
 	    <li><strong>Hosts: </strong>$int:num_hosts$</li>
 	  </ul>
 	</div>
-	
+
 	<div class="medium-4 small-12 columns">
           <ul>
-	  <li><strong>XS Version: </strong>$str:List.assoc "product_version" master_rec.API.host_software_version$</li>
+	  <li><strong>XS Version: </strong>$str:product_version$</li>
 	  </ul>
 	</div>
 
 	<div class="medium-4 small-12 columns">
 	  <a href="#" data-host="$str:host$" class="button expand tiny btn_pool_disconnect"><span><i class="fi-x"> </i>Disconnect</span> </a>
-	  <a href="#" data-host="$str:host$" class="button expand tiny btn_pool_forget"><span><i class="fi-x"> </i>Forget</span></a> 
+	  <a href="#" data-host="$str:host$" class="button expand tiny btn_pool_forget"><span><i class="fi-x"> </i>Forget</span></a>
         </div>
-	
-      </div> 
+
+      </div>
     </div>
   >>
 
