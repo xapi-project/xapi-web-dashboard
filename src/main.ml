@@ -31,7 +31,7 @@ let render () =
     | `VM (p,r,vm_rec) ->
       if vm_rec.API.vM_is_a_template then None else Some (Vms.vm r vm_rec)
     | `Host (p,r,host_rec) ->
-      Some <:xml< <span>host</span> >>
+      Some (Hosts.host r host_rec)
     | `Pool (r,pool_rec) ->
       let st = List.find (fun st -> st.Connections.pool_ref = r) states in
       Some (Pools.render_one st)) search in
