@@ -40,10 +40,11 @@ let render () =
   let more_xml = List.map Pools.render_one disconnected in
   let strs = List.map (fun xml -> Cow.Xml.to_string xml) (more_xml @ xmls) in
   let all = String.concat "" strs in
-  Firebug.console##log (Js.string ("I'm supposed to be setting innerHTML to: " ^ all));
+  Firebug.console##log (Js.string "setting innerHTML");
   demo##innerHTML <- Js.string all;
   Pools.connect_handlers ();
-  Vms.connect_handlers ()
+  Vms.connect_handlers ();
+  Firebug.console##log (Js.string "... render complete")
 
 let action () =
   let server = get_val "login_server" in
@@ -79,7 +80,7 @@ let onload _ =
   let input = get_by_id "search_text_box" in
   let input_node = Js.Opt.get (Dom_html.CoerceTo.input input) (fun _ -> assert false) in
   input_node##onchange <- Dom_html.handler (fun _ -> render (); Js._true);
-  
+
   let connect_icon_button (button,v) =
     let button = get_btn button in
     button##onclick <- Dom_html.handler (fun _ ->
