@@ -36,6 +36,9 @@ let chart_handler ev =
   let (_ : 'a Lwt.t) = Graph.watch_rrds chart st in
   Js._true
 
+let _modelname = "modelname"
+let _cpu_count = "cpu_count"
+let _socket_count = "socket_count"
 
 let host host_ref host_rec =
   let memory =
@@ -67,6 +70,19 @@ let host host_ref host_rec =
       | false, _ -> "Not responding to heartbeats"
     with _ ->
       "Unknown" in
+  let address = host_rec.API.host_address in
+  let cpu_model =
+    if List.mem_assoc _modelname host_rec.API.host_cpu_info
+    then List.assoc _modelname host_rec.API.host_cpu_info
+    else "Unknown" in
+  let cpu_details =
+    if ((List.mem_assoc _cpu_count host_rec.API.host_cpu_info)
+    && (List.mem_assoc _socket_count host_rec.API.host_cpu_info))
+    then
+      (List.assoc _cpu_count host_rec.API.host_cpu_info) ^ " cores arranged over " ^
+      (List.assoc _socket_count host_rec.API.host_cpu_info) ^ " sockets"
+    else
+      "Unknown" in
   let metrics_btn = <:xml< <li data-host="$str:host_ref$" class="button btn_host_metrics"><i class="fa fa-bar-chart"> </i></li> >> in
   let ops = List.fold_left (fun acc x -> match button_of_allowed_op x with Some r -> r::acc | None -> acc) [metrics_btn] host_rec.API.host_allowed_operations in
   <:xml<
@@ -85,11 +101,12 @@ let host host_ref host_rec =
           <ul>
 	    <li><strong>Current ops: </strong>$str:current_ops$</li>
 	    <li><strong>Memory: </strong>$str:memory$</li>
+      <li><strong>IP address: </strong>$str:address$</li>
           </ul>
         </div>
         <div class="medium-4 small-12 columns">
-          <p>more info?</p>
-	        <p>more info?</p>
+        <p>$str:cpu_model$</p>
+        <p>$str:cpu_details$</p>
         </div>
         <div class="medium-4 small-12 columns">
           <ul class="button-group even-6">$list:ops$</ul>
