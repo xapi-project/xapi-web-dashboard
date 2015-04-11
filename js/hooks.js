@@ -13,3 +13,7 @@ function close_chart_modal() {
 function open_chart_modal() {
     $('#myChartModal').foundation('reveal','open');
 }
+
+function reinitialise_foundation(){
+  $(document).foundation();
+}

@@ -48,6 +48,8 @@ let render () =
   Pools.connect_handlers ();
   Vms.connect_handlers ();
   Hosts.connect_handlers ();
+  (* Dropdowns require us to reinitialise foundation again *)
+  Js.Unsafe.fun_call (Js.Unsafe.variable "reinitialise_foundation") [| |];
   Firebug.console##log (Js.string "... render complete")
 
 let action () =
