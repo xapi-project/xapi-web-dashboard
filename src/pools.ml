@@ -83,9 +83,10 @@ let render_pool st id name master_name master_address master_rec =
   let num_hosts = Cache.M.fold (fun key (p_ref, v) acc -> if p_ref = st.pool_ref then 1+acc else acc) !Cache.host 0 in
   let product_version =
     try
-      List.assoc "product_version" master_rec.API.host_software_version
+      let v = List.assoc "product_version" master_rec.API.host_software_version in
+      <:xml< <strong>XS version</strong>: $str:v$ >>
     with Not_found ->
-      "unknown version" in
+      <:xml< <strong>unknown XS version</strong> >> in
   <:xml<
     <div class="panel" id="$str:id$">
 
@@ -109,8 +110,8 @@ let render_pool st id name master_name master_address master_rec =
 	</div>
 
 	<div class="medium-4 small-12 columns">
-          <ul>
-	  <li><strong>XS Version: </strong>$str:product_version$</li>
+    <ul>
+	  <li>$product_version$</li>
 	  </ul>
 	</div>
 
