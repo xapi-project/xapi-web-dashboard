@@ -118,16 +118,6 @@ let host host_ref host_rec =
 
 let d = Dom_html.document
 
-
-let render (rpc,info) =
-  Client.Host.get_all_records rpc info.session >>= fun hosts ->
-  let hosts = List.map (fun (host_ref,host_rec) -> Cow.Xml.to_string (host host_ref host_rec)) hosts in
-  let demo =
-    Js.Opt.get (d##getElementById(Js.string "demo"))
-      (fun () -> assert false) in
-  demo##innerHTML <- Js.string (String.concat "" hosts);
-  Lwt.return ()
-
 let connect_handlers () =
   let elts = Dom.list_of_nodeList (d##getElementsByTagName(Js.string "li")) in
   let get_elts cls = List.filter (fun elt ->

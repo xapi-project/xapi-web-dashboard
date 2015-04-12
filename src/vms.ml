@@ -96,17 +96,6 @@ let vm vm_ref vm_rec =
 
 let d = Dom_html.document
   
-  
-let render (rpc,info) =
-  Client.VM.get_all_records rpc info.session >>= fun vms ->
-  let vms = List.filter (fun (_,vm_rec) -> not vm_rec.API.vM_is_a_template) vms in
-  let vms = List.map (fun (vm_ref,vm_rec) -> Cow.Xml.to_string (vm vm_ref vm_rec)) vms in
-  let demo =
-    Js.Opt.get (d##getElementById(Js.string "demo"))
-      (fun () -> assert false) in
-  demo##innerHTML <- Js.string (String.concat "" vms);
-  Lwt.return ()
-
 let connect_handlers () =
   let elts = Dom.list_of_nodeList (d##getElementsByTagName(Js.string "li")) in
   let get_elts cls = List.filter (fun elt ->
