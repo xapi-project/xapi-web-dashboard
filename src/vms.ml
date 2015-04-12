@@ -3,7 +3,7 @@ open Lwt
 
 let vm_op_button = "btn_vm_op"
 let vm_metrics_button = "btn_vm_metrics"
-  
+
 let button_handler ev =
   let vm_ref = Jsutils.data_attr_of_event ev "vm" in
   let op = Jsutils.data_attr_of_event ev "op" in
@@ -42,7 +42,11 @@ let vm vm_ref vm_rec =
   let vcpus = Printf.sprintf "%Ld" vm_rec.API.vM_VCPUs_max in
   let vbds = string_of_int (List.length vm_rec.API.vM_VBDs) in
   let vifs = string_of_int (List.length vm_rec.API.vM_VIFs) in
-  let current_ops = String.concat "," (List.map (fun (_,op) -> Rpc.to_string (API.rpc_of_vm_operations op)) vm_rec.API.vM_current_operations) in
+  let current_ops = match vm_rec.API.vM_current_operations with
+  | [] -> <:xml< >>
+  | ops ->
+    let ops = String.concat "," (List.map (fun (_,op) -> Rpc.to_string (API.rpc_of_vm_operations op)) ops) in
+    <:xml< <li><strong>Current ops: </strong>$str:ops$</li> >> in
   let power_state =
     match vm_rec.API.vM_power_state with
     | `Halted -> "Halted"
@@ -77,8 +81,8 @@ let vm vm_ref vm_rec =
       <div class="row">
         <div class="medium-4 small-12 columns">
           <ul>
-	    <li><strong>Current ops: </strong>$str:current_ops$</li>
-	    <li><strong>Memory: </strong>$str:memory$</li>
+          $current_ops$
+      <li><strong>Memory: </strong>$str:memory$</li>
 	    <li><strong>VCPUs: </strong>$str:vcpus$</li>
           </ul>
         </div>
@@ -95,17 +99,6 @@ let vm vm_ref vm_rec =
    >>
 
 let d = Dom_html.document
-  
-  
-let render (rpc,info) =
-  Client.VM.get_all_records rpc info.session >>= fun vms ->
-  let vms = List.filter (fun (_,vm_rec) -> not vm_rec.API.vM_is_a_template) vms in
-  let vms = List.map (fun (vm_ref,vm_rec) -> Cow.Xml.to_string (vm vm_ref vm_rec)) vms in
-  let demo =
-    Js.Opt.get (d##getElementById(Js.string "demo"))
-      (fun () -> assert false) in
-  demo##innerHTML <- Js.string (String.concat "" vms);
-  Lwt.return ()
 
 let connect_handlers () =
   let elts = Dom.list_of_nodeList (d##getElementsByTagName(Js.string "li")) in

@@ -48,7 +48,11 @@ let host host_ref host_rec =
       Memory.to_string host_metrics_rec.API.host_metrics_memory_total
     with Not_found ->
       "Unknown" in
-  let current_ops = String.concat "," (List.map (fun (_,op) -> Rpc.to_string (API.rpc_of_host_allowed_operations op)) host_rec.API.host_current_operations) in
+  let current_ops = match host_rec.API.host_current_operations with
+  | [] -> <:xml< >>
+  | ops ->
+    let ops = String.concat "," (List.map (fun (_,op) -> Rpc.to_string (API.rpc_of_host_allowed_operations op)) ops) in
+    <:xml< <li><strong>Current ops: </strong>$str:ops$</li> >> in
   let button_of_allowed_op op =
     match op with
     | `evacuate ->
@@ -99,8 +103,8 @@ let host host_ref host_rec =
       <div class="row">
         <div class="medium-4 small-12 columns">
           <ul>
-	    <li><strong>Current ops: </strong>$str:current_ops$</li>
-	    <li><strong>Memory: </strong>$str:memory$</li>
+      $current_ops$
+      <li><strong>Memory: </strong>$str:memory$</li>
       <li><strong>IP address: </strong>$str:address$</li>
           </ul>
         </div>
@@ -117,16 +121,6 @@ let host host_ref host_rec =
    >>
 
 let d = Dom_html.document
-
-
-let render (rpc,info) =
-  Client.Host.get_all_records rpc info.session >>= fun hosts ->
-  let hosts = List.map (fun (host_ref,host_rec) -> Cow.Xml.to_string (host host_ref host_rec)) hosts in
-  let demo =
-    Js.Opt.get (d##getElementById(Js.string "demo"))
-      (fun () -> assert false) in
-  demo##innerHTML <- Js.string (String.concat "" hosts);
-  Lwt.return ()
 
 let connect_handlers () =
   let elts = Dom.list_of_nodeList (d##getElementsByTagName(Js.string "li")) in
