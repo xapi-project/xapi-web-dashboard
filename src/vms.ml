@@ -36,11 +36,13 @@ let chart_handler ev =
     Js.Opt.get (Dom_html.document##getElementById(Js.string "metrics-drop"))
       (fun () -> assert false) in
   let (_: 'a Lwt.t) =
+
     Client.VM.get_data_sources st.rpc st.session vm_ref
     >>= fun dss ->
+
     let items = List.map
       (fun ds ->
-        <:xml< <li><a href="#">$str:ds.API.data_source_name_label$</a></li> >>
+        <:xml< <li><a href="#">$str:ds.API.data_source_name_description$</a></li> >>
       ) dss in
     let all = String.concat " " (List.map Cow.Xml.to_string items) in
     ul##innerHTML <- Js.string all;
