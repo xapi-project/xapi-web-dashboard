@@ -26,14 +26,42 @@ let button_handler ev =
   in
   Js._true
 
+let graph_thread : unit Lwt.t option ref = ref None
+
 let chart_handler ev =
   let host_ref = Jsutils.data_attr_of_event ev "host" in
   let states = Connections.all_states () in
   let (pool_ref,_) = Cache.M.find host_ref !Cache.host in
   let st = List.find (fun state -> state.pool_ref = pool_ref) states in
+
+  let ul =
+    Js.Opt.get (Dom_html.document##getElementById(Js.string "metrics-drop"))
+      (fun () -> assert false) in
+  let (_: 'a Lwt.t) =
+
+    Client.Host.get_data_sources st.rpc st.session host_ref
+    >>= fun dss ->
+
+    let items = List.map
+      (fun ds ->
+        <:xml< <li><a href="#">$str:ds.API.data_source_name_description$</a></li> >>
+      ) dss in
+    let all = String.concat " " (List.map Cow.Xml.to_string items) in
+    ul##innerHTML <- Js.string all;
+
+    begin match !graph_thread with
+    | Some t -> Lwt.cancel t
+    | None -> ()
+    end;
+
+    let chart = C3.generate "#chart" C3.example in
+    let th = Graph.watch_rrds chart (List.hd dss) st in
+    graph_thread := Some th;
+
+    return () in
+
+
   Graph.open_chart_modal ();
-  let chart = C3.generate "#chart" C3.example in
-  let (_ : 'a Lwt.t) = Graph.watch_rrds chart st in
   Js._true
 
 let _modelname = "modelname"
