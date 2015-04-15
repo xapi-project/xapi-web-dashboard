@@ -29,17 +29,21 @@ let endswith suffix x =
 	let x' = String.length x in
 	suffix' <= x' && (String.sub x (x' - suffix') suffix' = suffix)
 
-let render_update chart update =
+let render_update chart data_source update =
   (* XXX: pick a memory free RRD for now *)
   let open Rrd_updates in
 	let _, chosen = Array.fold_left
 	  (fun (idx, chosen) elt ->
 			if chosen >=0 then (idx + 1, chosen)
 			else
-			  if endswith "cpu0" elt
-				then (idx + 1, idx)
-				else (idx + 1, chosen)
-		) (0, -1) update.legend in
+        match Xen_api_metrics.Legend.of_string elt with
+        | `Ok (name, _, _, _) ->
+          if data_source.API.data_source_name_label = name
+          then (idx + 1, idx)
+          else (idx + 1, chosen)
+        | _ ->
+          (idx + 1, chosen)
+    ) (0, -1) update.legend in
 	if chosen = -1
 	then Firebug.console##log(Js.string "Failed to find an interesting RRD update")
 	else begin
@@ -55,17 +59,17 @@ let render_update chart update =
 			List.map (fun x -> Int64.to_float (fst x)) points,
 			[
 		    {
-		      C3.label = "CPU usage";
+		      C3.label = data_source.API.data_source_name_description;
 		      values = List.map snd points;
 		      ty = Area_step;
 		    }
 			]
 		) in
-		C3.flow chart ~flow_to:(`Delete 0) data;
+		C3.flow chart ~flow_to:(`Delete 1) data;
 
 	end
 
-let watch_rrds chart { Connections.session; c = { Connections.host } } =
+let watch_rrds chart data_source { Connections.session; c = { Connections.host } } =
   let host = Uri.make ~scheme:"http" ~host () in
   let uri start = Xen_api_metrics.Updates.uri
       ~host ~authentication:(`Session_id session)
@@ -76,7 +80,7 @@ let watch_rrds chart { Connections.session; c = { Connections.host } } =
     >>= fun txt ->
     let update = Xen_api_metrics.Updates.parse txt in
     Firebug.console##log(Js.string "got some updates");
-    render_update chart update;
+    render_update chart data_source update;
     Lwt_js.sleep 5.
     >>= fun () ->
     loop (Int64.to_int update.Rrd_updates.end_time) in

@@ -26,7 +26,9 @@ let button_handler ev =
   in
   Js._true
 
-let chart_handler ev =
+let graph_thread : unit Lwt.t option ref = ref None
+
+let rec chart_handler ev =
   let vm_ref = Jsutils.data_attr_of_event ev "vm" in
   let states = Connections.all_states () in
   let (pool_ref,_) = Cache.M.find vm_ref !Cache.vm in
@@ -38,18 +40,43 @@ let chart_handler ev =
   let (_: 'a Lwt.t) =
 
     Client.VM.get_data_sources st.rpc st.session vm_ref
-    >>= fun dss ->
-
+    >>= function
+    | [] ->
+      Firebug.console##log(Js.string "VM has no datasources; can't draw a graph");
+      return ()
+    | (x :: xs) as all ->
+      let ds = match Jsutils.get_attribute_of_target ev "data-ds" with
+      | None ->
+       x (* arbitrary choice *)
+      | Some name ->
+        begin
+          try
+            List.find (fun ds -> ds.API.data_source_name_label = name) all
+          with Not_found ->
+            Firebug.console##log(Js.string (Printf.sprintf "Unknown data-source: %s" name));
+            x
+        end in
     let items = List.map
       (fun ds ->
-        <:xml< <li><a href="#">$str:ds.API.data_source_name_description$</a></li> >>
-      ) dss in
+        <:xml< <li data-vm="$str:vm_ref$" data-ds="$str:ds.API.data_source_name_label$" class="btn_metrics_change">$str:ds.API.data_source_name_description$</li> >>
+      ) all in
     let all = String.concat " " (List.map Cow.Xml.to_string items) in
     ul##innerHTML <- Js.string all;
+
+    Jsutils.connect_handler "btn_metrics_change" chart_handler;
+
+    begin match !graph_thread with
+    | Some t -> Lwt.cancel t
+    | None -> ()
+    end;
+
+    let chart = C3.generate "#chart" C3.example in
+    let th = Graph.watch_rrds chart ds st in
+    graph_thread := Some th;
+
     return () in
   Graph.open_chart_modal ();
-  let chart = C3.generate "#chart" C3.example in
-  let (_ : 'a Lwt.t) = Graph.watch_rrds chart st in
+
   Js._true
 
 
@@ -117,9 +144,5 @@ let vm vm_ref vm_rec =
 let d = Dom_html.document
 
 let connect_handlers () =
-  let elts = Dom.list_of_nodeList (d##getElementsByTagName(Js.string "li")) in
-  let get_elts cls = List.filter (fun elt ->
-      Js.to_bool (elt##classList##contains(Js.string cls))) elts
-  in
-  List.iter (fun elt -> elt##onclick <- Dom_html.handler button_handler) (get_elts vm_op_button);
-  List.iter (fun elt -> elt##onclick <- Dom_html.handler chart_handler) (get_elts vm_metrics_button);
+  Jsutils.connect_handler vm_op_button button_handler;
+  Jsutils.connect_handler vm_metrics_button chart_handler
