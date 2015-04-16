@@ -28,7 +28,7 @@ let button_handler ev =
 
 let graph_thread : unit Lwt.t option ref = ref None
 
-let chart_handler ev =
+let rec chart_handler ev =
   let host_ref = Jsutils.data_attr_of_event ev "host" in
   let states = Connections.all_states () in
   let (pool_ref,_) = Cache.M.find host_ref !Cache.host in
@@ -40,14 +40,30 @@ let chart_handler ev =
   let (_: 'a Lwt.t) =
 
     Client.Host.get_data_sources st.rpc st.session host_ref
-    >>= fun dss ->
-
+    >>= function
+    | [] ->
+      Firebug.console##log(Js.string "Host has no datasources; can't draw a graph");
+      return ()
+    | (x :: xs) as all ->
+      let ds = match Jsutils.get_attribute_of_target ev "data-ds" with
+      | None ->
+       x (* arbitrary choice *)
+      | Some name ->
+        begin
+          try
+            List.find (fun ds -> ds.API.data_source_name_label = name) all
+          with Not_found ->
+            Firebug.console##log(Js.string (Printf.sprintf "Unknown data-source: %s" name));
+            x
+        end in
     let items = List.map
       (fun ds ->
-        <:xml< <li><a href="#">$str:ds.API.data_source_name_description$</a></li> >>
-      ) dss in
+        <:xml< <li data-host="$str:host_ref$" data-ds="$str:ds.API.data_source_name_label$" class="btn_metrics_change">$str:ds.API.data_source_name_description$</li> >>
+      ) all in
     let all = String.concat " " (List.map Cow.Xml.to_string items) in
     ul##innerHTML <- Js.string all;
+
+    Jsutils.connect_handler "btn_metrics_change" chart_handler;
 
     begin match !graph_thread with
     | Some t -> Lwt.cancel t
@@ -55,7 +71,7 @@ let chart_handler ev =
     end;
 
     let chart = C3.generate "#chart" C3.example in
-    let th = Graph.watch_rrds chart (List.hd dss) st in
+    let th = Graph.watch_rrds chart ds st in
     graph_thread := Some th;
 
     return () in
