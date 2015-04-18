@@ -27,14 +27,14 @@
 		</li>
 	      </ul>
 	      <section class="top-bar-section">
-		
+
 		<ul class="right">
-		  <li><a class="button" href="#" data-reveal-id="myModal">Add a host</a></li>
-	    
+		  <li id="joyride-1"><a class="button" href="#" data-reveal-id="myModal">Add a Pool</a></li>
+
 
 		  <li class="has-form">
 		    <div class="row collapse">
-		      <div class="small-8 large-7 columns">
+		      <div id="joyride-2" class="small-8 large-7 columns">
 			<input type="text" placeholder="Search" value="class:pool" id="search_text_box">
 		      </div>
 		      <div class="small-3 large-3 end columns">
@@ -44,13 +44,12 @@
 		  </li>
 		</ul>
 	      </section>
-	    </nav> 
+	    </nav>
 	  </div>
 	</div>
-	
 	<div class="row">
 	  <div class="large-12 columns">
-	    <div class="icon-bar four-up">
+	    <div id="joyride-3" class="icon-bar four-up">
 	      <a class="item" id="icon_bar_pools">
 		<i class="fa fa-cloud"></i>
 		<label>Pools</label>
@@ -68,14 +67,14 @@
 		<label>Alerts</label>
 	      </a>
 	    </div>
-	    
+
 	    <div id="myModal" class="reveal-modal" data-reveal aria-labelledby="modalTitle" aria-hidden="true" role="dialog">
-	      <h2 id="modalTitle">Add a host</h2>
-	      
+	      <h2 id="modalTitle">Connect to a resource pool</h2>
+
       	      <form>
 		<div class="row">
 		  <div class="large-12 columns">
-		    <label>Server
+		    <label>Host name or address
 		      <input type="text" id="login_server" placeholder="server" />
 		    </label>
 		  </div>
@@ -94,7 +93,7 @@
 		    </label>
 		  </div>
 		</div>
-		<a href="#" id="login_button" class="button">Login</a>
+		<a href="#" id="login_button" class="button">Connect</a>
 	      </form>
 
 	      <a class="close-reveal-modal" aria-label="Close">&#215;</a>
@@ -118,7 +117,22 @@
 	  </div>
 	</div>
       </div>
+      <!--
     </div>
+-->
+    <ol class="joyride-list" data-joyride>
+      <li data-id="joyride-1" data-text="Next" data-options="prev_button: false">
+        <p>Click on "Add a Pool" to connect to a Pool.</p>
+        <p>You can connect to as many Pools as you like.</p>
+      </li>
+      <li data-id="joyride-2" data-text="Next" data-prev-text="Prev">
+        <p>You can find anything using the free text search</p>
+      </li>
+      <li data-id="joyride-3" data-button="End" data-prev-text="Prev" data-options="tip_animation:fade">
+        <p>Click on the buttons to focus your search on Pools/Hosts/VMs or alerts.</p>
+        <p>That's it!</p>
+      </li>
+    </ol>
 
     <script src="js/vendor/jquery.js"></script>
     <script src="js/foundation.min.js"></script>
@@ -129,6 +143,8 @@
     <script src="main.js"> </script>
     <script>
       $(document).foundation();
+      //(document).foundation('joyride', 'start');
+
     </script>
   </body>
 </html>

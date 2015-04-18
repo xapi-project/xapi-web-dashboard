@@ -17,3 +17,7 @@ function open_chart_modal() {
 function reinitialise_foundation(){
   $(document).foundation();
 }
+
+function start_joyride() {
+  $(document).foundation('joyride', 'start');
+}

@@ -43,3 +43,29 @@ let connect_handler name handler =
   |> Dom.list_of_nodeList
   |> List.filter (fun elt -> Js.to_bool (elt##classList##contains(Js.string name)))
   |> List.iter (fun elt -> elt##onclick <- Dom_html.handler handler)
+
+let get_by_id id =
+  Js.Opt.get
+    (Dom_html.document##getElementById(Js.string id))
+    (fun () ->
+      Firebug.console##log(Js.string (Printf.sprintf "Failed to find element with id: %s" id));
+      assert false)
+
+let ( >>?= ) = Js.Opt.iter
+
+let get_val id =
+  let input = get_by_id id in
+  let input_node = Js.Opt.get (Dom_html.CoerceTo.input input)
+    (fun _ ->
+      Firebug.console##log(Js.string (Printf.sprintf "Element with id %s cannot be coerced to input" id));
+      assert false) in
+  let v = input_node##value in
+  Js.to_string v
+
+let set_val id v =
+  let input = get_by_id id in
+  let input_node = Js.Opt.get (Dom_html.CoerceTo.input input)
+    (fun _ ->
+      Firebug.console##log(Js.string (Printf.sprintf "Element with id %s cannot be coerced to input" id));
+      assert false) in
+  input_node##value <- Js.string v

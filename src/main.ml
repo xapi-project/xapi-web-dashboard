@@ -1,55 +1,48 @@
+open Jsutils
 
 let d = Dom_html.document
-let get_by_id id =
-  Js.Opt.get (d##getElementById(Js.string id))
-    (fun () -> assert false)
-
-let ( >>?= ) = Js.Opt.iter
-
-let get_val id =
-  let input = get_by_id id in
-  let input_node = Js.Opt.get (Dom_html.CoerceTo.input input) (fun _ -> assert false) in
-  let v = input_node##value in
-  Js.to_string v
-
-let set_val id v =
-  let input = get_by_id id in
-  let input_node = Js.Opt.get (Dom_html.CoerceTo.input input) (fun _ -> assert false) in
-  input_node##value <- Js.string v
 
 open Lwt
 
 let render () =
   Firebug.console##log (Js.string "rendering...");
-  let demo =
-    Js.Opt.get (d##getElementById(Js.string "demo"))
-      (fun () -> assert false) in
+  (* This is the main element: *)
+  let demo = get_by_id "demo" in
+  (* If there are no connections i.e. this is a first time use, trigger the
+     add host modal immediately. *)
   let states = Connections.all_states () in
-  let v = get_val "search_text_box" in
-  let search = Search.query v in
-  let xmls = List.map (function
-    | `VM (p,r,vm_rec) ->
-      if vm_rec.API.vM_is_a_template then None else Some (Vms.vm r vm_rec)
-    | `Host (p,r,host_rec) ->
-      Some (Hosts.host r host_rec)
-    | `Pool (r,pool_rec) ->
-      let st = List.find (fun st -> st.Connections.pool_ref = r) states in
-      Some (Pools.render_one st)
-    | `Message (p,r,message_rec) ->
-      Some (Messages.message (r, message_rec))
-  ) search in
-  let xmls = List.fold_left (fun acc x -> match x with Some y -> y::acc | None -> acc) [] xmls in
-  let disconnected = List.filter (fun st -> st.Connections.st <> Connections.Connected) states in
-  let more_xml = List.map Pools.render_one disconnected in
-  let strs = List.map (fun xml -> Cow.Xml.to_string xml) (more_xml @ xmls) in
-  let all = String.concat "" strs in
-  Firebug.console##log (Js.string "setting innerHTML");
-  demo##innerHTML <- Js.string all;
-  Pools.connect_handlers ();
-  Vms.connect_handlers ();
-  Hosts.connect_handlers ();
-  (* Dropdowns require us to reinitialise foundation again *)
-  Js.Unsafe.fun_call (Js.Unsafe.variable "reinitialise_foundation") [| |];
+  if states = [] then begin
+    Connections.open_host_modal ()
+  end else begin
+
+    let v = get_val "search_text_box" in
+    let search = Search.query v in
+    let xmls = List.map (function
+      | `VM (p,r,vm_rec) ->
+        if vm_rec.API.vM_is_a_template then None else Some (Vms.vm r vm_rec)
+      | `Host (p,r,host_rec) ->
+        Some (Hosts.host r host_rec)
+      | `Pool (r,pool_rec) ->
+        let st = List.find (fun st -> st.Connections.pool_ref = r) states in
+        Some (Pools.render_one st)
+      | `Message (p,r,message_rec) ->
+        Some (Messages.message (r, message_rec))
+    ) search in
+    let xmls = List.fold_left (fun acc x -> match x with Some y -> y::acc | None -> acc) [] xmls in
+    let disconnected = List.filter (fun st -> st.Connections.st <> Connections.Connected) states in
+    let more_xml = List.map Pools.render_one disconnected in
+    let strs = List.map (fun xml -> Cow.Xml.to_string xml) (more_xml @ xmls) in
+    let all = String.concat "" strs in
+
+    Firebug.console##log (Js.string "setting innerHTML");
+    demo##innerHTML <- Js.string all;
+    Pools.connect_handlers ();
+    Vms.connect_handlers ();
+    Hosts.connect_handlers ();
+    Joyride.start ();
+    (* Dropdowns require us to reinitialise foundation again *)
+    Js.Unsafe.fun_call (Js.Unsafe.variable "reinitialise_foundation") [| |];
+  end;
   Firebug.console##log (Js.string "... render complete")
 
 let action () =
@@ -73,14 +66,10 @@ let action () =
 let onload _ =
   Connections.init ();
 
-  let get_btn btn =
-    Js.Opt.get (d##getElementById(Js.string btn))
-      (fun () -> assert false) in
-
-  let login_button = get_btn "login_button" in
+  let login_button = get_by_id "login_button" in
   login_button##onclick <- Dom_html.handler (fun _ -> action (); Js._true);
 
-  let search_button = get_btn "search_text_button" in
+  let search_button = get_by_id "search_text_button" in
   search_button##onclick <- Dom_html.handler (fun _ -> render (); Js._true);
 
   let input = get_by_id "search_text_box" in
@@ -88,7 +77,7 @@ let onload _ =
   input_node##onchange <- Dom_html.handler (fun _ -> render (); Js._true);
 
   let connect_icon_button (button,v) =
-    let button = get_btn button in
+    let button = get_by_id button in
     button##onclick <- Dom_html.handler (fun _ ->
 	set_val "search_text_box" v;
 	render (); Js._true)
