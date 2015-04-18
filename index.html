@@ -34,8 +34,8 @@
 
 		  <li class="has-form">
 		    <div class="row collapse">
-		      <div class="small-8 large-7 columns">
-			<input id="joyride-2" type="text" placeholder="Search" value="class:pool" id="search_text_box">
+		      <div id="joyride-2" class="small-8 large-7 columns">
+			<input type="text" placeholder="Search" value="class:pool" id="search_text_box">
 		      </div>
 		      <div class="small-3 large-3 end columns">
 			<a href="#" class="alert button expand" id="search_text_button">Filter</a>
@@ -70,12 +70,12 @@
 	    </div>
 
 	    <div id="myModal" class="reveal-modal" data-reveal aria-labelledby="modalTitle" aria-hidden="true" role="dialog">
-	      <h2 id="modalTitle">Add a host</h2>
+	      <h2 id="modalTitle">Connect to a resource pool</h2>
 
       	      <form>
 		<div class="row">
 		  <div class="large-12 columns">
-		    <label>Server
+		    <label>Host name or address
 		      <input type="text" id="login_server" placeholder="server" />
 		    </label>
 		  </div>
@@ -94,7 +94,7 @@
 		    </label>
 		  </div>
 		</div>
-		<a href="#" id="login_button" class="button">Login</a>
+		<a href="#" id="login_button" class="button">Connect</a>
 	      </form>
 
 	      <a class="close-reveal-modal" aria-label="Close">&#215;</a>
@@ -142,7 +142,7 @@
     <script src="main.js"> </script>
     <script>
       $(document).foundation();
-      $(document).foundation('joyride', 'start');
+      //(document).foundation('joyride', 'start');
 
     </script>
   </body>
