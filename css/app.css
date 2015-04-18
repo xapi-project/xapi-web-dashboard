@@ -1,0 +1,34 @@
+.top-bar {
+  background: #A6373F;
+}
+
+.top-bar-section .has-form {
+  background: #A6373F;
+}
+
+.top-bar-section ul li {
+  background: #A6373F;
+}
+
+.top-bar-section ul li > a.button {
+  background: #3C8D2F;
+}
+.icon-bar {
+  background: #236A62;
+}
+
+a {
+  color: #236A62;
+}
+
+.icon-bar > a:hover {
+  background: #0D4F48;
+}
+
+button, .button {
+  background: #236A62;
+}
+
+.button:hover {
+  background: #0D4F48;
+}

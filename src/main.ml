@@ -40,8 +40,6 @@ let render () =
     Vms.connect_handlers ();
     Hosts.connect_handlers ();
     Joyride.start ();
-    (* Dropdowns require us to reinitialise foundation again *)
-    Js.Unsafe.fun_call (Js.Unsafe.variable "reinitialise_foundation") [| |];
   end;
   Firebug.console##log (Js.string "... render complete")
 
@@ -69,12 +67,9 @@ let onload _ =
   let login_button = get_by_id "login_button" in
   login_button##onclick <- Dom_html.handler (fun _ -> action (); Js._true);
 
-  let search_button = get_by_id "search_text_button" in
-  search_button##onclick <- Dom_html.handler (fun _ -> render (); Js._true);
-
   let input = get_by_id "search_text_box" in
   let input_node = Js.Opt.get (Dom_html.CoerceTo.input input) (fun _ -> assert false) in
-  input_node##onchange <- Dom_html.handler (fun _ -> render (); Js._true);
+  input_node##oninput <- Dom_html.handler (fun _ -> render (); Js._true);
 
   let connect_icon_button (button,v) =
     let button = get_by_id button in
