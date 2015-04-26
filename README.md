@@ -9,8 +9,10 @@ This is a simple tool to help you
 
 all from a web-browser or mobile phone.
 
+Try the github-hosted version:
+[xapi-project.github.io/xapi-web-dashboard](https://xapi-project.github.io/xapi-web-dashboard)
+
 This is not intended to be a full admin console like
 [XenCenter](https://github.com/xenserver/xenadmin)
 or
 [XenOrchestra](https://xen-orchestra.com/).
-
