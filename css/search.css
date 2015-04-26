@@ -1,0 +1,17 @@
+.fi-magnifying-glass:before {
+    content: "\f16c";
+    position: absolute;
+    margin-left: 7px;
+    margin-top: 2 px;
+    font-size: 30px;
+    line-height: 50px;
+    color: #cccccc;
+    z-index: 2;
+    display: inline-block;
+}
+
+
+input[type="text"].dream-search {
+    width: 150px;
+    padding-left: 35px;
+}

@@ -1,0 +1,154 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Xapi Web Dashboard</title>
+    <link rel="stylesheet" href="css/foundation.css" />
+    <link rel="stylesheet" href="icons/foundation-icons.css" />
+    <link rel="stylesheet" href="font-awesome/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="css/app.css">
+    <script src="js/vendor/modernizr.js"></script>
+    <link href="css/c3.min.css" rel="stylesheet" type="text/css">
+  </head>
+  <body>
+
+    <div class="row">
+      <div class="large-12 columns">
+	<div class="row">
+	  <div class="large-12 columns">
+	    <nav class="top-bar" data-topbar>
+	      <ul class="title-area">
+
+		<li class="name">
+		  <h1><a href="#">Xapi Web Dashboard</a></h1>
+		</li>
+		<li class="toggle-topbar menu-icon">
+		  <a href="#"><span>menu</span></a>
+		</li>
+	      </ul>
+	      <section class="top-bar-section">
+
+		<ul class="right">
+		  <li id="joyride-1"><a class="button" href="#" data-reveal-id="myModal">Add a Pool</a></li>
+
+
+		  <li class="has-form">
+		    <div class="row collapse">
+		      <div id="joyride-2" class="small-8 large-7 columns">
+			<input type="text" placeholder="Search" value="class:pool" id="search_text_box">
+		      </div>
+		    </div>
+		  </li>
+		</ul>
+	      </section>
+	    </nav>
+	  </div>
+	</div>
+	<div class="row">
+	  <div class="large-12 columns">
+	    <div id="joyride-3" class="icon-bar four-up">
+	      <a class="item" id="icon_bar_pools">
+		<i class="fa fa-cloud"></i>
+		<label>Pools</label>
+	      </a>
+	      <a class="item" id="icon_bar_hosts">
+		<i class="fa fa-server"></i>
+		<label>Hosts</label>
+	      </a>
+	      <a class="item" id="icon_bar_vms">
+		<i class="fa fa-desktop"></i>
+		<label>VMs</label>
+	      </a>
+	      <a class="item" id="icon_bar_alerts">
+		<i class="fa fa-exclamation"></i>
+		<label>Alerts</label>
+	      </a>
+	    </div>
+
+	    <div id="myModal" class="reveal-modal" data-reveal aria-labelledby="modalTitle" aria-hidden="true" role="dialog">
+	      <h2 id="modalTitle">Connect to a resource pool</h2>
+
+      	      <form>
+		<div class="row">
+		  <div class="large-12 columns">
+		    <label>Host name or address
+		      <input type="text" id="login_server" placeholder="server" />
+		    </label>
+		  </div>
+		</div>
+		<div class="row">
+		  <div class="large-12 columns">
+		    <label>Username
+		      <input type="text" id="login_username" placeholder="username" />
+		    </label>
+		  </div>
+		</div>
+		<div class="row">
+		  <div class="large-12 columns">
+		    <label>Password
+		      <input type="password" id="login_password" placeholder="password" />
+		    </label>
+		  </div>
+		</div>
+		<a href="#" id="login_button" class="button">Connect</a>
+	      </form>
+
+	      <a class="close-reveal-modal" aria-label="Close">&#215;</a>
+	    </div>
+
+	    <div id="myChartModal" class="reveal-modal" data-reveal aria-labelledby="modalTitle" aria-hidden="true" role="dialog">
+	      <!-- <h2 id="modalTitle">Metrics</h2> -->
+        <a href="#" class="button split">Choose Datasource <span data-dropdown="metrics-drop"></span></a><br>
+        <ul id="metrics-drop" class="f-dropdown" data-dropdown-content>
+          <li><a href="#">This is a link</a></li>
+          <li><a href="#">This is another</a></li>
+          <li><a href="#">Yet another</a></li>
+        </ul>
+        <a href="#" class="button split">Choose Resolution <span data-dropdown="resolution-drop"></span></a><br>
+        <ul id="resolution-drop" class="f-dropdown" data-dropdown-content>
+          <li data-interval="5" class="btn_resolution_change"><a href="#">Sampled every 5 seconds for 10 minutes</a></li>
+          <li data-interval="60" class="btn_resolution_change"><a href="#">Sampled every minute for 2 hours</a></li>
+          <li data-interval="3600" class="btn_resolution_change"><a href="#">Sampled every hour for 1 week</a></li>
+          <li data-interval="86400" class="btn_resolution_change"><a href="#">Sampled every day for 1 year</a></li>
+        </ul>
+
+	      <div id="chart"></div>
+
+	      <a class="close-reveal-modal" aria-label="Close">&#215;</a>
+	    </div>
+
+            <div id="demo"> </div>
+
+	  </div>
+	</div>
+      </div>
+      <!--
+    </div>
+-->
+    <ol class="joyride-list" data-joyride>
+      <li data-id="joyride-1" data-text="Next" data-options="prev_button: false">
+        <p>Click on "Add a Pool" to connect to a Pool.</p>
+        <p>You can connect to as many Pools as you like.</p>
+      </li>
+      <li data-id="joyride-2" data-text="Next" data-prev-text="Prev">
+        <p>You can find anything using the free text search</p>
+      </li>
+      <li data-id="joyride-3" data-button="End" data-prev-text="Prev" data-options="tip_animation:fade">
+        <p>Click on the buttons to focus your search on Pools/Hosts/VMs or alerts.</p>
+        <p>That's it!</p>
+      </li>
+    </ol>
+
+    <script src="js/vendor/jquery.js"></script>
+    <script src="js/foundation.min.js"></script>
+    <script src="js/foundation.dropdown.js"></script>
+    <script src="js/hooks.js"></script>
+    <script src="js/d3.v3.min.js" charset="utf-8"></script>
+    <script src="js/c3.min.js"></script>
+    <script src="main.js"> </script>
+    <script>
+      $(document).foundation();
+    </script>
+  </body>
+</html>
