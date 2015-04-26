@@ -105,6 +105,14 @@
           <li><a href="#">This is another</a></li>
           <li><a href="#">Yet another</a></li>
         </ul>
+        <a href="#" class="button split">Choose Resolution <span data-dropdown="resolution-drop"></span></a><br>
+        <ul id="resolution-drop" class="f-dropdown" data-dropdown-content>
+          <li data-interval="5" class="btn_resolution_change"><a href="#">Sampled every 5 seconds for 10 minutes</a></li>
+          <li data-interval="60" class="btn_resolution_change"><a href="#">Sampled every minute for 2 hours</a></li>
+          <li data-interval="3600" class="btn_resolution_change"><a href="#">Sampled every hour for 1 week</a></li>
+          <li data-interval="86400" class="btn_resolution_change"><a href="#">Sampled every day for 1 year</a></li>
+        </ul>
+
 	      <div id="chart"></div>
 
 	      <a class="close-reveal-modal" aria-label="Close">&#215;</a>
