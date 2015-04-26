@@ -30,7 +30,6 @@ let endswith suffix x =
 	suffix' <= x' && (String.sub x (x' - suffix') suffix' = suffix)
 
 let render_update chart data_source update =
-  (* XXX: pick a memory free RRD for now *)
   let open Rrd_updates in
 	let _, chosen = Array.fold_left
 	  (fun (idx, chosen) elt ->
@@ -69,11 +68,11 @@ let render_update chart data_source update =
 
 	end
 
-let watch_rrds chart data_source { Connections.session; c = { Connections.host } } =
+let watch_rrds chart data_source interval { Connections.session; c = { Connections.host } } =
   let host = Uri.make ~scheme:"http" ~host () in
   let uri start = Xen_api_metrics.Updates.uri
       ~host ~authentication:(`Session_id session)
-      ~start ~include_host:true
+      ~start ~interval ~include_host:true
       () in
   let rec loop start =
     do_get ~uri:(uri start)

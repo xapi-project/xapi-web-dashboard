@@ -27,6 +27,8 @@ let button_handler ev =
   Js._true
 
 let graph_thread : unit Lwt.t option ref = ref None
+let current_ds = ref None
+let current_interval = ref (`Other 5)
 
 let rec chart_handler ev =
   let host_ref = Jsutils.data_attr_of_event ev "host" in
@@ -34,9 +36,7 @@ let rec chart_handler ev =
   let (pool_ref,_) = Cache.M.find host_ref !Cache.host in
   let st = List.find (fun state -> state.pool_ref = pool_ref) states in
 
-  let ul =
-    Js.Opt.get (Dom_html.document##getElementById(Js.string "metrics-drop"))
-      (fun () -> assert false) in
+
   let (_: 'a Lwt.t) =
 
     Client.Host.get_data_sources st.rpc st.session host_ref
@@ -45,7 +45,10 @@ let rec chart_handler ev =
       Firebug.console##log(Js.string "Host has no datasources; can't draw a graph");
       return ()
     | (x :: xs) as all ->
-      let ds = match Jsutils.get_attribute_of_target ev "data-ds" with
+      let ds_name = match Jsutils.get_attribute_of_target ev "data-ds" with
+        | None -> !current_ds (* keep the current setting *)
+        | Some ds -> Some ds in
+      let ds = match ds_name with
       | None ->
        x (* arbitrary choice *)
       | Some name ->
@@ -61,9 +64,34 @@ let rec chart_handler ev =
         <:xml< <li data-host="$str:host_ref$" data-ds="$str:ds.API.data_source_name_label$" class="btn_metrics_change">$str:ds.API.data_source_name_description$</li> >>
       ) all in
     let all = String.concat " " (List.map Cow.Xml.to_string items) in
+    let ul =
+      Js.Opt.get (Dom_html.document##getElementById(Js.string "metrics-drop"))
+        (fun () -> assert false) in
+    ul##innerHTML <- Js.string all;
+    (* Have we updated the interval? *)
+    let interval = match Jsutils.get_attribute_of_target ev "data-interval" with
+      | None ->
+      Firebug.console##log(Js.string "XXX no change to interval");
+      !current_interval
+      | Some x -> `Other (int_of_string x) in
+
+    let ul =
+      Js.Opt.get (Dom_html.document##getElementById(Js.string "resolution-drop"))
+        (fun () -> assert false) in
+    let items = List.map
+      (fun (seconds, descr) ->
+        <:xml< <li data-host="$str:host_ref$" data-interval="$str:string_of_int seconds$" class="btn_resolution_change">$str:descr$</li> >>
+      ) [
+        5, "Sampled every 5 seconds for 10 minutes";
+        60, "Sampled every minute for 2 hours";
+        60 * 60, "Sampled every hour for 1 week";
+        24 * 60 * 60, "Sampled every day for 1 year";
+      ] in
+      let all = String.concat " " (List.map Cow.Xml.to_string items) in
     ul##innerHTML <- Js.string all;
 
     Jsutils.connect_handler "btn_metrics_change" chart_handler;
+    Jsutils.connect_handler "btn_resolution_change" chart_handler;
 
     begin match !graph_thread with
     | Some t -> Lwt.cancel t
@@ -71,8 +99,10 @@ let rec chart_handler ev =
     end;
 
     let chart = C3.generate "#chart" C3.example in
-    let th = Graph.watch_rrds chart ds st in
+    let th = Graph.watch_rrds chart ds interval st in
     graph_thread := Some th;
+    current_ds := Some ds.API.data_source_name_label;
+    current_interval := interval;
 
     return () in
 

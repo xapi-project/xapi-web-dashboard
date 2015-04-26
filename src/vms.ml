@@ -71,7 +71,7 @@ let rec chart_handler ev =
     end;
 
     let chart = C3.generate "#chart" C3.example in
-    let th = Graph.watch_rrds chart ds st in
+    let th = Graph.watch_rrds chart ds (`Other 5) st in
     graph_thread := Some th;
 
     return () in
