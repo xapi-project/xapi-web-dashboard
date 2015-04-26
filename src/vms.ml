@@ -125,11 +125,11 @@ let vm vm_ref vm_rec =
   let button_of_allowed_op op =
     match op with
     | `start ->
-      Some <:xml< <li data-op="start" data-vm="$str:vm_ref$" class="button btn_vm_op"><i class="fi-play"> </i></li> >>
+      Some <:xml< <li data-op="start" data-vm="$str:vm_ref$" class="button btn_vm_op"><i class="fa fi-play"> </i></li> >>
     | `hard_shutdown ->
-      Some <:xml< <li data-op="shutdown" data-vm="$str:vm_ref$" class="button btn_vm_op"><i class="fi-power"> </i></li> >>
+      Some <:xml< <li data-op="shutdown" data-vm="$str:vm_ref$" class="button btn_vm_op"><i class="fa fi-power"> </i></li> >>
     | `hard_reboot ->
-      Some <:xml< <li data-op="reboot" data-vm="$str:vm_ref$" class="button btn_vm_op"><i class="fi-refresh"> </i></li> >>
+      Some <:xml< <li data-op="reboot" data-vm="$str:vm_ref$" class="button btn_vm_op"><i class="fa fi-refresh"> </i></li> >>
     | _ ->
       None
   in
