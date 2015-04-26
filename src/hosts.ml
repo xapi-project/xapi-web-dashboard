@@ -70,9 +70,7 @@ let rec chart_handler ev =
     ul##innerHTML <- Js.string all;
     (* Have we updated the interval? *)
     let interval = match Jsutils.get_attribute_of_target ev "data-interval" with
-      | None ->
-      Firebug.console##log(Js.string "XXX no change to interval");
-      !current_interval
+      | None -> !current_interval
       | Some x -> `Other (int_of_string x) in
 
     let ul =
@@ -130,11 +128,11 @@ let host host_ref host_rec =
   let button_of_allowed_op op =
     match op with
     | `evacuate ->
-      Some <:xml< <li data-op="evacuate" data-host="$str:host_ref$" class="button btn_host_op"><i class="fi-play"> </i></li> >>
+      Some <:xml< <li data-op="evacuate" data-host="$str:host_ref$" class="button btn_host_op"><i class="fa fi-play"> </i></li> >>
     | `shutdown ->
-      Some <:xml< <li data-op="shutdown" data-host="$str:host_ref$" class="button btn_host_op"><i class="fi-power"> </i></li> >>
+      Some <:xml< <li data-op="shutdown" data-host="$str:host_ref$" class="button btn_host_op"><i class="fa fi-power"> </i></li> >>
     | `reboot ->
-      Some <:xml< <li data-op="reboot" data-host="$str:host_ref$" class="button btn_host_op"><i class="fi-refresh"> </i></li> >>
+      Some <:xml< <li data-op="reboot" data-host="$str:host_ref$" class="button btn_host_op"><i class="fa fi-refresh"> </i></li> >>
     | _ ->
       None
   in

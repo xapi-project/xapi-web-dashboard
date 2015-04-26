@@ -29,7 +29,7 @@ let endswith suffix x =
 	let x' = String.length x in
 	suffix' <= x' && (String.sub x (x' - suffix') suffix' = suffix)
 
-let render_update chart data_source update =
+let render_update chart data_source window update =
   let open Rrd_updates in
 	let _, chosen = Array.fold_left
 	  (fun (idx, chosen) elt ->
@@ -64,26 +64,34 @@ let render_update chart data_source update =
 		    }
 			]
 		) in
-		C3.flow chart ~flow_to:(`Delete 1) data;
+		C3.flow chart ~flow_to:(`ToX (float_of_int (Int64.to_int update.end_time - window))) data;
 
 	end
 
-let watch_rrds chart data_source interval { Connections.session; c = { Connections.host } } =
+let watch_rrds chart data_source interval { Connections.session; rpc; pool_ref; c = { Connections.host } } =
   let host = Uri.make ~scheme:"http" ~host () in
   let uri start = Xen_api_metrics.Updates.uri
       ~host ~authentication:(`Session_id session)
       ~start ~interval ~include_host:true
       () in
+  (* Aim to keep this length of time on screen *)
+  let length = Xen_api_metrics.seconds_of_interval interval in
+  let window = Xen_api_metrics.archive_length_of_interval interval in
   let rec loop start =
     do_get ~uri:(uri start)
     >>= fun txt ->
     let update = Xen_api_metrics.Updates.parse txt in
-    Firebug.console##log(Js.string "got some updates");
-    render_update chart data_source update;
-    Lwt_js.sleep 5.
+    Firebug.console##log(Js.string (Printf.sprintf "updates start = %Ld end = %Ld range = %Ld"
+      update.Rrd_updates.start_time update.Rrd_updates.end_time
+      (Int64.sub update.Rrd_updates.end_time update.Rrd_updates.start_time)));
+    render_update chart data_source window update;
+    Lwt_js.sleep (float_of_int (Xen_api_metrics.seconds_of_interval interval))
     >>= fun () ->
     loop (Int64.to_int update.Rrd_updates.end_time) in
-  (* XXX: query server's current clock *)
-  do_get ~uri:(uri 1500000000) >>= fun txt ->
+  do_get ~uri:(uri max_int) >>= fun txt ->
   let update = Xen_api_metrics.Updates.parse txt in
-  loop ((Int64.to_int update.Rrd_updates.end_time) - 60*9)
+  (* Initially we ask for an update in the future, and this reveals
+     the time of the last update. *)
+  if update.Rrd_updates.end_time < update.Rrd_updates.start_time
+  then loop (Int64.to_int update.Rrd_updates.end_time - window + length)
+  else loop ((Int64.to_int update.Rrd_updates.end_time))
