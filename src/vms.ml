@@ -27,6 +27,8 @@ let button_handler ev =
   Js._true
 
 let graph_thread : unit Lwt.t option ref = ref None
+let current_ds = ref None
+let current_interval = ref (`Other 5)
 
 let rec chart_handler ev =
   let vm_ref = Jsutils.data_attr_of_event ev "vm" in
@@ -34,9 +36,7 @@ let rec chart_handler ev =
   let (pool_ref,_) = Cache.M.find vm_ref !Cache.vm in
   let st = List.find (fun state -> state.pool_ref = pool_ref) states in
 
-  let ul =
-    Js.Opt.get (Dom_html.document##getElementById(Js.string "metrics-drop"))
-      (fun () -> assert false) in
+
   let (_: 'a Lwt.t) =
 
     Client.VM.get_data_sources st.rpc st.session vm_ref
@@ -61,9 +61,32 @@ let rec chart_handler ev =
         <:xml< <li data-vm="$str:vm_ref$" data-ds="$str:ds.API.data_source_name_label$" class="btn_metrics_change">$str:ds.API.data_source_name_description$</li> >>
       ) all in
     let all = String.concat " " (List.map Cow.Xml.to_string items) in
+    let ul =
+      Js.Opt.get (Dom_html.document##getElementById(Js.string "metrics-drop"))
+        (fun () -> assert false) in
+    ul##innerHTML <- Js.string all;
+    (* Have we updated the interval? *)
+    let interval = match Jsutils.get_attribute_of_target ev "data-interval" with
+      | None -> !current_interval
+      | Some x -> `Other (int_of_string x) in
+
+    let ul =
+      Js.Opt.get (Dom_html.document##getElementById(Js.string "resolution-drop"))
+        (fun () -> assert false) in
+    let items = List.map
+      (fun (seconds, descr) ->
+        <:xml< <li data-vm="$str:vm_ref$" data-interval="$str:string_of_int seconds$" class="btn_resolution_change">$str:descr$</li> >>
+      ) [
+        5, "Sampled every 5 seconds for 10 minutes";
+        60, "Sampled every minute for 2 hours";
+        60 * 60, "Sampled every hour for 1 week";
+        24 * 60 * 60, "Sampled every day for 1 year";
+      ] in
+      let all = String.concat " " (List.map Cow.Xml.to_string items) in
     ul##innerHTML <- Js.string all;
 
     Jsutils.connect_handler "btn_metrics_change" chart_handler;
+    Jsutils.connect_handler "btn_resolution_change" chart_handler;
 
     begin match !graph_thread with
     | Some t -> Lwt.cancel t
@@ -71,8 +94,10 @@ let rec chart_handler ev =
     end;
 
     let chart = C3.generate "#chart" C3.example in
-    let th = Graph.watch_rrds chart ds (`Other 5) st in
+    let th = Graph.watch_rrds chart ds interval st in
     graph_thread := Some th;
+    current_ds := Some ds.API.data_source_name_label;
+    current_interval := interval;
 
     return () in
   Graph.open_chart_modal ();
