@@ -70,9 +70,7 @@ let rec chart_handler ev =
     ul##innerHTML <- Js.string all;
     (* Have we updated the interval? *)
     let interval = match Jsutils.get_attribute_of_target ev "data-interval" with
-      | None ->
-      Firebug.console##log(Js.string "XXX no change to interval");
-      !current_interval
+      | None -> !current_interval
       | Some x -> `Other (int_of_string x) in
 
     let ul =
